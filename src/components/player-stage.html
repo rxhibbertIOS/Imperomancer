@@ -1,0 +1,129 @@
+<div id="playerApp" x-data="playerApp" x-cloak>
+    <div class="player-shell">
+        <div class="scene scene-full" data-stage :class="{ 'dice-active': diceRolling || showResultModal }">
+            <div class="dice-backdrop" aria-hidden="true"></div>
+            <template x-if="showCalibrationSquare">
+                <div class="calibration-reference"
+                    :style="`width: ${effectivePpi()}px; height: ${effectivePpi()}px;`"
+                    aria-hidden="true">
+                    <span class="calibration-label">1&Prime;</span>
+                </div>
+            </template>
+            <template x-if="mediaType === 'image'">
+                                    <img :src="currentImage || ''" :style="sceneStyle()"
+                                        @load="onSceneMediaReady($event)" data-grid-scene alt="Current scene">
+            </template>
+            <template x-if="mediaType === 'video'">
+                        <video :src="currentImage || ''" autoplay loop muted playsinline preload="auto"
+                        :style="sceneStyle()" @loadedmetadata="onSceneMediaReady($event)"
+                                                    data-grid-scene aria-label="Current scene video"></video>
+            </template>
+            <canvas class="grid-overlay" data-grid-canvas aria-hidden="true"></canvas>
+            <div class="overlay-layer">
+                <div class="initiative-bar"
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Initiative order"
+                    :class="{ visible: showInitiative && !initiative360 && combatants.length > 0,
+                            collapsed: initiativeCollapsed }">
+                    <span class="round">Round <span x-text="round"></span></span>
+                    <div class="init-carousel">
+                        <div class="init-current"
+                            :class="{ dead: currentCombatant && currentCombatant.isDead }"
+                            x-text="currentCombatant ? currentCombatant.name : '—'"></div>
+                        <div class="init-divider" aria-hidden="true">›</div>
+                        <div class="init-upcoming">
+                            <span class="ondeck-label">On Deck</span>
+                            <template x-for="(c, i) in upcomingCombatants" :key="c.id">
+                                <span class="upcoming-name"
+                                    :class="{ dead: c.isDead, first: i === 0 }"
+                                    x-text="c.name"></span>
+                            </template>
+                            <span class="upcoming-empty" x-show="upcomingCombatants.length === 0">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="initiative-360"
+                    aria-hidden="true"
+                    :class="{ visible: showInitiative && initiative360 && combatants.length > 0 }">
+                    <template x-for="edge in ['top','right','bottom','left']" :key="edge">
+                        <div class="initiative-edge"
+                            :class="{
+                                'edge-top':    edge === 'top',
+                                'edge-right':  edge === 'right',
+                                'edge-bottom': edge === 'bottom',
+                                'edge-left':   edge === 'left',
+                                collapsed: !(edges && edges[edge])
+                            }">
+                            <div class="initiative-bar initiative-bar--edge">
+                                <span class="round">Round <span x-text="round"></span></span>
+                                <div class="init-carousel">
+                                    <div class="init-current"
+                                        :class="{ dead: currentCombatant && currentCombatant.isDead }"
+                                        x-text="currentCombatant ? currentCombatant.name : '—'"></div>
+                                    <div class="init-divider" aria-hidden="true">›</div>
+                                    <div class="init-upcoming">
+                                        <span class="ondeck-label">On Deck</span>
+                                        <template x-for="(c, i) in upcomingCombatants" :key="c.id">
+                                            <span class="upcoming-name"
+                                                :class="{ dead: c.isDead, first: i === 0 }"
+                                                x-text="c.name"></span>
+                                        </template>
+                                        <span class="upcoming-empty" x-show="upcomingCombatants.length === 0">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <svg class="shape-overlay"
+                    :width="stageSize().W"
+                    :height="stageSize().H"
+                    aria-hidden="true"
+                    x-html="shapeLayerMarkup()">
+                </svg>
+                
+                <div class="status-overlay"
+                    x-show="statusVisible"
+                    x-transition.opacity.duration.300ms
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true">
+                    <div class="status-banner" x-text="statusText"></div>
+                </div>
+
+                <!-- Focus pings -->
+                <template x-for="ping in focusPings" :key="ping.id">
+                    <div class="focus-ping"
+                        :style="focusPingStyle(ping)"
+                        @animationend="removeFocusPing(ping.id)"
+                        aria-hidden="true">
+                        <span class="focus-ping-ring"></span>
+                        <span class="focus-ping-dot"></span>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Player Dice Tray -->
+            <div id="playerDiceContainer" class="dice-tray dice-tray-full" aria-hidden="true"></div>
+
+            <!-- Player Result Modal -->
+            <div class="modal-scrim" x-show="showResultModal" x-transition.opacity>
+                <div class="result-modal"
+                        role="status"
+                        aria-live="assertive"
+                        aria-atomic="true">
+                    <h2 id="player-result-title" class="sr-only">Dice roll result</h2>
+                    <div class="result-tag" x-text="lastResult?.tag || 'Roll'"></div>
+                    <div class="result-notation" x-text="lastResult?.notation"></div>
+                    <div class="result-number" role="status" aria-live="polite"
+                            :class="{ critical: lastResult?.critical, fail: lastResult?.fail }"
+                            x-text="lastResult?.total"></div>
+                    <div class="result-breakdown" x-text="lastResult?.breakdown"></div>
+                    <div class="result-message" x-show="lastResult?.message" x-text="lastResult?.message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

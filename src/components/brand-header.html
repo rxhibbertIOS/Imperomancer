@@ -1,0 +1,33 @@
+<header class="brand">
+    <button type="button"
+            class="sidebar-toggle"
+            :aria-expanded="sidebarOpen"
+            aria-controls="dmSidebar"
+            :aria-label="sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
+            @click="sidebarOpen = !sidebarOpen">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+    </button>
+    <div class="brand-icon" aria-hidden="true">
+        <img class="brand-logo" src="../assets/img/Logo_Image.png" alt="">
+    </div>
+    <div class="brand-text">
+        <h1>Imperomancer</h1>
+        <p>Dungeon Master Control Suite</p>
+    </div>
+    <button type="button"
+        class="brand-status btn-reset"
+        :class="{ live: isLive, connecting: isConnecting, dormant: !isLive && !isConnecting }"
+        :aria-pressed="isLive"
+        :aria-label="isLive ? 'Disconnect player' : isConnecting ? 'Cancel player connection' : 'Connect player display'"
+        aria-keyshortcuts="Alt+L"
+        @click="toggleLive()">
+        <span class="dot" aria-hidden="true"></span>
+        <span x-text="isLive ? 'Live' : isConnecting ? 'Connecting…' : 'Go Live'"></span>
+    </button>
+</header>

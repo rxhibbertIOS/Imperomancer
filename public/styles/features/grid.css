@@ -1,0 +1,225 @@
+/* ============================================================
+   GRID OVERLAY + CONTROLS
+   ============================================================ */
+
+.grid-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* The overlay-layer sits above the grid */
+.overlay-layer {
+    z-index: 2;
+}
+
+/* ---------- Controls ---------- */
+
+.switch-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--text-2);
+    cursor: pointer;
+    user-select: none;
+}
+.switch-row input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 18px;
+    margin: 0;
+    border: 1px solid var(--border-2);
+    border-radius: 999px;
+    background: var(--card-2);
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease;
+}
+.switch-row input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-3);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    transition: transform 160ms ease, background 160ms ease;
+}
+.switch-row input[type="checkbox"]:checked {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+}
+.switch-row input[type="checkbox"]:checked::before {
+    transform: translateX(16px);
+    background: #1a1204;
+}
+.switch-row input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+}
+
+.grid-field-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+.grid-field-row .field-input {
+    flex: 1;
+    min-width: 0;
+}
+.field-suffix {
+    font-size: 11px;
+    color: var(--text-3);
+    white-space: nowrap;
+}
+
+.grid-offset-field {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+.grid-offset-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-3);
+    width: 12px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.grid-slider {
+    width: 100%;
+    accent-color: var(--gold);
+    cursor: pointer;
+    margin-top: 4px;
+}
+.grid-size-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+.grid-size-readout {
+    font-size: 10px;
+    color: var(--text-3);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: ui-monospace, monospace;
+}
+.grid-size-sep {
+    opacity: 0.5;
+    margin: 0 4px;
+}
+
+.field-hint {
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-3);
+    margin: 8px 0;
+}
+
+/* ---------- Calibration details/summary ---------- */
+
+.grid-calibration {
+    margin-top: 16px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+}
+.grid-calibration summary {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    padding: 4px 0;
+}
+.grid-calibration summary::-webkit-details-marker { display: none; }
+.grid-calibration summary::before {
+    content: '▸';
+    display: inline-block;
+    width: 12px;
+    margin-right: 4px;
+    transition: transform 0.15s ease;
+}
+.grid-calibration[open] summary::before {
+    transform: rotate(90deg);
+}
+.grid-calibration summary:hover { color: var(--text-2); }
+.grid-calibration summary:focus-visible {
+    outline: 2px solid var(--gold-dim);
+    outline-offset: 2px;
+}
+
+.grid-calibration-body {
+    padding-top: 8px;
+}
+
+.grid-readout {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    font-family: ui-monospace, monospace;
+}
+.grid-readout > div {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-3);
+}
+.grid-readout b {
+    color: var(--gold);
+    font-weight: 600;
+}
+.calibration-reference {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    border: 2px dashed var(--gold);
+    border-radius: 2px;
+    z-index: 3;
+    pointer-events: none;
+}
+.calibration-label {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-left: 8px;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--gold);
+    white-space: nowrap;
+}
+.switch-row.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.switch-row.disabled input { cursor: not-allowed; opacity: 0.45; }
+.mini-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.stage-inner.locked {
+    box-shadow: 0 0 0 2px var(--gold-dim);
+}

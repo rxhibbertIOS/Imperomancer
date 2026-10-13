@@ -1,0 +1,138 @@
+<section class="card" aria-labelledby="scene-card-title">
+    <header class="card-head">
+        <h3 id="scene-card-title" class="card-title">
+            <button type="button" class="card-toggle"
+                    @click="toggleCard('scene')"
+                    :aria-expanded="openCard === 'scene'"
+                    aria-controls="scene-card-body">
+                <img class="app-icon" src="../assets/icons/image-square.svg" alt="" aria-hidden="true">
+                <span>Scene</span>
+                <span class="card-head-right">
+                    <span class="chip chip-muted"
+                            x-text="(pendingMediaType || mediaType) === 'video' ? 'Video' : 'Image'"></span>
+                    <span class="accordion-arrow"
+                        aria-hidden="true"
+                        :class="{ open: openCard === 'scene' }">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </span>
+                </span>
+            </button>
+        </h3>
+    </header>
+
+    <div id="scene-card-body" class="card-body"
+            x-show="openCard === 'scene'" x-transition.opacity>
+        <div class="scene-manager">
+                <div class="scene-tabs" role="tablist" aria-label="Prepared scenes"
+                    aria-orientation="vertical">
+                <template x-for="scene in scenes" :key="scene.id">
+                    <button type="button" class="scene-tab" role="tab"
+                            :aria-selected="selectedSceneId === scene.id"
+                            :class="{ 'scene-tab-active': selectedSceneId === scene.id }"
+                            @click="selectScene(scene.id)">
+                        <span class="scene-tab-name" x-text="scene.name"></span>
+                            <span class="scene-tab-live"
+                                x-show="publishedSceneId === scene.id && !scene.dirty">Live</span>
+                            <span class="scene-tab-draft"
+                                x-show="publishedSceneId === scene.id && scene.dirty">Draft</span>
+                    </button>
+                </template>
+            </div>
+            <div class="scene-manager-actions">
+                <button type="button" class="mini-btn" @click="createScene()"
+                        aria-label="Create scene" title="Create scene">
+                    <img class="app-icon" src="../assets/icons/image-plus.svg" alt="" aria-hidden="true">
+                    </button>
+                <button type="button" class="mini-btn" @click="deleteSelectedScene()"
+                        :disabled="scenes.length <= 1"
+                        aria-label="Remove selected scene" title="Remove selected scene">
+                    <img class="app-icon" src="../assets/icons/image-minus.svg" alt="" aria-hidden="true">
+                    </button>
+            </div>
+            <label class="field-label" for="scene-name">Scene name</label>
+            <input id="scene-name" class="field-input" type="text"
+                    x-model="sceneNameDraft" @change="renameSelectedScene()"
+                    maxlength="48">
+        </div>
+
+        <button type="button" class="upload-btn" @click="$refs.imageInput.click()">
+            <img class="app-icon upload-icon" src="../assets/icons/image-plus.svg" alt="" aria-hidden="true">
+            <span>Choose file</span>
+            <span class="upload-hint">PNG · JPG · GIF · MP4</span>
+        </button>
+        <div x-show="pendingImage" style="margin-top: 10px;">
+            <div class="field-label" id="scene-preview-label">Next Scene Preview</div>
+
+            <template x-if="pendingMediaType !== 'video'">
+                <img :src="pendingImage"
+                    alt="Preview of the scene queued to display"
+                    aria-labelledby="scene-preview-label"
+                    style="max-width: 100%; max-height: 120px; border-radius: 8px; border: 1px solid var(--border);">
+            </template>
+
+            <template x-if="pendingMediaType === 'video'">
+                <video :src="pendingImage"
+                    muted
+                    loop
+                    autoplay
+                    playsinline
+                    aria-label="Preview of the video scene queued to display"
+                    style="max-width: 100%; max-height: 120px; border-radius: 8px; border: 1px solid var(--border);"></video>
+            </template>
+        </div>
+        <input type="file" x-ref="imageInput" accept="image/*,video/*"
+                @change="handleImageUpload($event)" hidden
+                aria-label="Upload scene image or video">
+
+        <div class="field-label" id="transition-label">Publish transition</div>
+        <div class="chips" role="group" aria-labelledby="transition-label">
+            <template x-for="t in ['cut','fade']" :key="t">
+                <button type="button" class="chip"
+                        :class="{ 'chip-active': publishTransition === t }"
+                        :aria-pressed="publishTransition === t"
+                        @click="publishTransition = t"
+                        x-text="t.charAt(0).toUpperCase() + t.slice(1)"></button>
+            </template>
+        </div>
+
+        <div class="field-label" id="zoom-label">View</div>
+        <div class="zoom-controls" role="group" aria-labelledby="zoom-label">
+            <button type="button" class="mini-btn" @click="zoomImage(-0.2)"
+                    :disabled="locked" aria-label="Zoom out">
+                <img class="app-icon" src="../assets/icons/zoom-out.svg" alt="" aria-hidden="true">
+                </button>
+            <span class="zoom-val" aria-live="polite"
+                x-text="locked ? 'Locked' : zoomPercent() + '%'"></span>
+            <button type="button" class="mini-btn" @click="zoomImage(0.2)"
+                    :disabled="locked" aria-label="Zoom in">
+                    <img class="app-icon" src="../assets/icons/zoom-in.svg" alt="" aria-hidden="true">
+                </button>
+            <button type="button" class="mini-btn" @click="resetZoom()"
+                    aria-label="Reset zoom and pan"><img class="app-icon" src="../assets/icons/history.svg" alt="" aria-hidden="true"></button>
+        </div>
+
+        <div class="btn-row" x-show="pendingImage">
+            <button type="button" class="btn btn-primary" @click="applyImage()">
+                <img class="app-icon" src="../assets/icons/image-square-check.svg" alt="" aria-hidden="true"> Update Prepared Scene
+            </button>
+            <button type="button" class="btn btn-ghost"
+                    @click="pendingImage = null; pendingMediaType = null">
+                <img class="app-icon" src="../assets/icons/image-square-xmark.svg" alt="" aria-hidden="true"> Cancel
+            </button>
+        </div>
+        <div class="scene-publish-row">
+            <button type="button" class="btn btn-primary" @click="publishSelectedScene()">
+                <img class="app-icon" src="../assets/icons/image-square-check.svg" alt="" aria-hidden="true"> Publish to Table
+            </button>
+            <button type="button" class="btn btn-ghost" @click="clearScene()">
+                <img class="app-icon" src="../assets/icons/image-square-xmark.svg" alt="" aria-hidden="true"> Clear Scene
+            </button>
+        </div>
+        <div class="field-hint" role="status"
+                x-text="publishedScene ? 'On table: ' + publishedScene.name : 'No scene published'"></div>
+    </div>
+</section>

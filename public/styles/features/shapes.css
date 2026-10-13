@@ -1,0 +1,107 @@
+/* ============================================================
+   SHAPE OVERLAY
+   ============================================================ */
+.shape-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.shape-stroke {
+    fill: none;
+    stroke: var(--gold, #ffd166);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.7));
+}
+
+.flash-shape {
+    animation: shape-flash-fade 2s ease-out forwards;
+}
+
+@keyframes shape-flash-fade {
+    0%   { opacity: 1; }
+    55%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.drag-shape .shape-stroke {
+    stroke-dasharray: 8 6;
+}
+
+.stage-inner.shape-mode { cursor: crosshair; }
+
+/* ============================================================
+   ANCHOR MENU
+   ============================================================ */
+.shape-menu {
+    position: absolute;
+    z-index: 100;
+    padding: 8px;
+    background: var(--card-1, #1a1a1a);
+    border: 1px solid var(--border, #333);
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    min-width: 132px;
+}
+
+.shape-menu-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-2, #999);
+    margin-bottom: 6px;
+    padding: 0 4px;
+}
+
+.shape-menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+.shape-menu-grid button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border, #333);
+    border-radius: 6px;
+    color: var(--text, #fff);
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.shape-menu-grid button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--gold, #ffd166);
+}
+
+.shape-menu-grid button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   DISTANCE TOOLTIP
+   ============================================================ */
+.shape-tooltip {
+    position: absolute;
+    z-index: 90;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid var(--gold, #ffd166);
+    border-radius: 4px;
+    color: var(--gold, #ffd166);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    font-variant-numeric: tabular-nums;
+}

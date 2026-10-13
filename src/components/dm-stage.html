@@ -1,0 +1,180 @@
+<main id="dmMain" class="stage" aria-label="Table display preview" data-stage>
+    <img class="stage-context"
+        :src="mediaType === 'image' ? currentImage || '' : ''"
+        :style="stageContextStyle()"
+        aria-hidden="true"
+        x-show="currentImage && mediaType === 'image' && !isAnimating">
+    <div class="stage-inner"
+        :class="{ locked, 'focus-mode': focusMode, 'shape-mode': !!pendingShapeKind }"
+        :style="stageInnerStyle()"
+        data-stage-inner
+        @mousedown="handleStageMouseDown($event)"
+        @mousemove="pan($event)"
+        @mouseup="endPan()"
+        @mouseleave="endPan()"
+        @wheel="onWheel($event)"
+        @click="handleFocusClick($event)"
+        @contextmenu.prevent="focusMode ? (focusMode = false) : null">
+        <div class="scene" :class="{ 'dice-active': diceRolling || showResultModal }">
+            <div class="dice-backdrop" aria-hidden="true"></div>
+
+            <!-- Image / Video -->
+            <template x-if="mediaType === 'image'">
+                <img :src="currentImage || ''" :style="sceneStyle()"
+                    @load="onSceneMediaReady($event)" data-grid-scene alt="Current scene">
+            </template>
+            <template x-if="mediaType === 'video'">
+                <video :src="currentImage || ''" autoplay loop muted playsinline preload="auto"
+                    :style="sceneStyle()" @loadedmetadata="onSceneMediaReady($event)"
+                    data-grid-scene aria-label="Current scene video"></video>
+            </template>
+
+            <canvas class="grid-overlay" data-grid-canvas aria-hidden="true"></canvas>
+
+            <!-- Overlays -->
+            <div class="overlay-layer">
+                <!-- Standard top bar -->
+                <div class="initiative-bar"
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Initiative order"
+                    :class="{ visible: showInitiative && !initiative360 && combatants.length > 0,
+                            collapsed: initiativeCollapsed }">
+                    <span class="round">Round <span x-text="round"></span></span>
+                    <div class="init-carousel">
+                        <div class="init-current"
+                            :class="{ dead: currentCombatant && currentCombatant.isDead }"
+                            x-text="currentCombatant ? currentCombatant.name : '—'"></div>
+                        <div class="init-divider" aria-hidden="true">›</div>
+                        <div class="init-upcoming">
+                            <span class="ondeck-label">On Deck</span>
+                            <template x-for="(c, i) in upcomingCombatants" :key="c.id">
+                                <span class="upcoming-name"
+                                    :class="{ dead: c.isDead, first: i === 0 }"
+                                    x-text="c.name"></span>
+                            </template>
+                            <span class="upcoming-empty" x-show="upcomingCombatants.length === 0">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 360° mode -->
+                <div class="initiative-360"
+                    aria-hidden="true"
+                    :class="{ visible: showInitiative && initiative360 && combatants.length > 0 }">
+                    <template x-for="edge in ['top','right','bottom','left']" :key="edge">
+                        <div class="initiative-edge"
+                            :class="{
+                                'edge-top':    edge === 'top',
+                                'edge-right':  edge === 'right',
+                                'edge-bottom': edge === 'bottom',
+                                'edge-left':   edge === 'left',
+                                collapsed: !edges[edge]
+                            }">
+                            <div class="initiative-bar initiative-bar--edge">
+                                <span class="round">Round <span x-text="round"></span></span>
+                                <div class="init-carousel">
+                                    <div class="init-current"
+                                        :class="{ dead: currentCombatant && currentCombatant.isDead }"
+                                        x-text="currentCombatant ? currentCombatant.name : '—'"></div>
+                                    <div class="init-divider" aria-hidden="true">›</div>
+                                    <div class="init-upcoming">
+                                        <span class="ondeck-label">On Deck</span>
+                                        <template x-for="(c, i) in upcomingCombatants" :key="c.id">
+                                            <span class="upcoming-name"
+                                                :class="{ dead: c.isDead, first: i === 0 }"
+                                                x-text="c.name"></span>
+                                        </template>
+                                        <span class="upcoming-empty" x-show="upcomingCombatants.length === 0">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <svg class="shape-overlay"
+                    :width="stageSize().W"
+                    :height="stageSize().H"
+                    aria-hidden="true"
+                    x-html="shapeLayerMarkup()">
+                </svg>
+                
+                <div class="status-overlay"
+                    x-show="statusVisible"
+                    x-transition.opacity.duration.300ms
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true">
+                    <div class="status-banner" x-text="statusText"></div>
+                </div>
+                
+                    <!-- Focus pings -->
+                <template x-for="ping in focusPings" :key="ping.id">
+                    <div class="focus-ping"
+                        :style="focusPingStyle(ping)"
+                        @animationend="removeFocusPing(ping.id)"
+                        aria-hidden="true">
+                        <span class="focus-ping-ring"></span>
+                        <span class="focus-ping-dot"></span>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Result Modal (DM sees this) -->
+            <div class="modal-scrim"
+                x-show="showResultModal"
+                x-transition.opacity
+                @click.self="showResultModal = false"
+                @keydown.escape.window="showResultModal = false">
+                <div class="result-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="dm-result-title"
+                    aria-describedby="dm-result-body">
+                    <h2 id="dm-result-title" class="sr-only">Dice roll result</h2>
+                    <div id="dm-result-body">
+                        <div class="result-tag"
+                            x-text="lastResult?.rollMode === 'private' ? 'Private Roll' : 'Public Roll'"></div>
+                        <div class="result-notation" x-text="lastResult?.notation"></div>
+                        <div class="result-number" role="status" aria-live="polite"
+                            :class="{ critical: lastResult?.critical, fail: lastResult?.fail }"
+                            x-text="lastResult?.total"></div>
+                        <div class="result-breakdown" x-text="lastResult?.breakdown"></div>
+                        <div class="result-message" x-show="lastResult?.message" x-text="lastResult?.message"></div>
+                    </div>
+                    <button type="button" class="btn btn-ghost btn-sm" @click="showResultModal = false">Close</button>
+                </div>
+            </div>
+        </div>
+        <div class="shape-menu"
+            x-show="shapeMenu"
+            x-transition.opacity.duration.100ms
+            :style="`left: ${shapeMenu?.x ?? 0}px; top: ${shapeMenu?.y ?? 0}px;`"
+            @mousedown.stop
+            @contextmenu.prevent
+            role="menu"
+            aria-label="Draw shape">
+            <div class="shape-menu-title">Draw</div>
+            <div class="shape-menu-grid">
+                <button type="button" role="menuitem" @click="pickShapeKind('line')" title="Line" aria-label="Line">
+                    <span aria-hidden="true">╱</span>
+                </button>
+                <button type="button" role="menuitem" disabled title="Circle (coming soon)" aria-label="Circle">
+                    <span aria-hidden="true">○</span>
+                </button>
+                <button type="button" role="menuitem" disabled title="Square (coming soon)" aria-label="Square">
+                    <span aria-hidden="true">□</span>
+                </button>
+                <button type="button" role="menuitem" disabled title="Cone (coming soon)" aria-label="Cone">
+                    <span aria-hidden="true">◭</span>
+                </button>
+            </div>
+            <div class="shape-tooltip"
+                x-show="dragShape"
+                x-transition.opacity.duration.100ms
+                :style="tooltipStyle()"
+                x-text="dragShape ? shapeDistanceLabel(dragShape) : ''"></div>
+        </div>
+    </div>
+</main>

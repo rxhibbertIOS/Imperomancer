@@ -1,0 +1,240 @@
+<!-- Grid Card -->
+<section class="card" aria-labelledby="grid-card-title">
+    <header class="card-head">
+        <h3 id="grid-card-title" class="card-title">
+            <button type="button" class="card-toggle"
+                    @click="toggleCard('grid')"
+                    :aria-expanded="openCard === 'grid'"
+                    aria-controls="grid-card-body">
+                <img class="app-icon" src="../assets/icons/grid.svg" alt="" aria-hidden="true">
+                <span>Grid</span>
+                <span class="card-head-right">
+                    <span class="chip chip-muted" x-text="gridTypeLabel()"></span>
+                    <span class="chip chip-gold" x-show="locked">
+                        <img class="app-icon" src="../assets/icons/locked.svg" alt="" aria-hidden="true"> Locked
+                    </span>
+                    <span class="accordion-arrow" aria-hidden="true"
+                        :class="{ open: openCard === 'grid' }">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </span>
+                </span>
+            </button>
+        </h3>
+    </header>
+
+    <div id="grid-card-body" class="card-body"
+        x-show="openCard === 'grid'" x-transition.opacity>
+
+        <label class="switch-row">
+            <input type="checkbox" role="switch" x-model="gridVisible"
+                @change="onGridVisibleChange()">
+            <span>Show grid</span>
+        </label>
+
+        <div class="field-label" id="grid-type-label">Type</div>
+        <div class="chips" role="group" aria-labelledby="grid-type-label">
+            <template x-for="t in gridTypes" :key="t.value">
+                <button type="button" class="chip"
+                        :class="{ 'chip-active': gridType === t.value }"
+                        :aria-pressed="gridType === t.value"
+                        @click="setGridType(t.value)"
+                        x-text="t.label"></button>
+            </template>
+        </div>
+        <label class="switch-row" :class="{ disabled: !canLock() }">
+            <input type="checkbox" role="switch"
+                x-model="locked"
+                @change="toggleLock()"
+                :disabled="!canLock()">
+            <span>Lock to 1&Prime; cells</span>
+        </label>
+        <div class="field-hint" x-show="!canLock()">
+            Set a scene px/cell value first.
+        </div>
+        <div class="field-hint" x-show="locked && canLock()">
+            Locked at <b x-text="zoomPercent() + '%'"></b> —
+            one cell = one physical inch.
+        </div>
+
+        <div class="field-label grid-size-label" id="grid-size-label">
+            <span>Grid size</span>
+            <span class="grid-size-readout">
+                <span x-text="Math.round(scenePxPerCell) + ' px/cell'"></span>
+                <span class="grid-size-sep">·</span>
+                <span x-text="gridCellsAcross + ' across'"></span>
+            </span>
+        </div>
+        <input type="range" min="20" max="400" step="1"
+            class="grid-slider"
+            x-model.number="scenePxPerCell"
+            @input="onScenePxPerCellChange()"
+            aria-labelledby="grid-size-label">
+
+        <div class="field-label">Alignment offset (px)</div>
+        <div class="grid-field-row">
+            <label class="grid-offset-field">
+                <span class="sr-only">Grid origin X in scene pixels</span>
+                <span class="grid-offset-label" aria-hidden="true">X</span>
+                <input type="number" step="1" class="field-input"
+                    x-model.number="sceneGridOriginX"
+                    @input="drawGrid()">
+            </label>
+            <label class="grid-offset-field">
+                <span class="sr-only">Grid origin Y in scene pixels</span>
+                <span class="grid-offset-label" aria-hidden="true">Y</span>
+                <input type="number" step="1" class="field-input"
+                    x-model.number="sceneGridOriginY"
+                    @input="drawGrid()">
+            </label>
+            <button type="button" class="mini-btn"
+                    @click="resetGridOrigin()"
+                    aria-label="Reset grid origin"><img class="app-icon" src="../assets/icons/reset.svg" alt="" aria-hidden="true"></button>
+        </div>
+
+        <label class="switch-row">
+            <input type="checkbox" role="switch" x-model="gridShowLabels"
+                @change="onGridShowLabelsChange()">
+            <span>Show labels (A1, B2…)</span>
+        </label>
+
+        <template x-if="gridShowLabels">
+            <div>
+                <div class="field-label" id="label-every-label">Label every N cells</div>
+                <input type="number" min="1" max="20" step="1"
+                    class="field-input"
+                    x-model.number="gridLabelEvery"
+                    @input="drawGrid()"
+                    aria-labelledby="label-every-label">
+            </div>
+        </template>
+
+        <div class="field-label" id="grid-opacity-label">Line opacity</div>
+        <input type="range" min="0" max="1" step="0.05"
+            class="grid-slider"
+            x-model.number="gridOpacity"
+            @input="drawGrid()"
+            aria-labelledby="grid-opacity-label">
+
+        <!-- Grid Calibration-->
+        <details class="grid-calibration">
+            <summary>Table display calibration</summary>
+            <div class="grid-calibration-body">
+
+                <div class="grid-readout">
+                    <div>
+                        <span>Table ppi</span>
+                        <b x-text="computeTablePpi().toFixed(2)"></b>
+                    </div>
+                    <div>
+                        <span>Table resolution</span>
+                        <b x-text="tableScreenWidth + '×' + tableScreenHeight"></b>
+                    </div>
+                    <div>
+                        <span>Cell size</span>
+                        <b x-text="cellPx().toFixed(1) + ' px'"></b>
+                    </div>
+                </div>
+
+                <div class="field-label" id="table-diag-label">TV diagonal (inches)</div>
+                <input type="number" min="5" step="0.1"
+                    class="field-input"
+                    x-model.number="tableDiagonal"
+                    @input="saveCalibration()"
+                    aria-labelledby="table-diag-label">
+
+                <div class="grid-field-row">
+                    <label class="grid-offset-field">
+                        <span class="sr-only">Aspect width</span>
+                        <span class="grid-offset-label" aria-hidden="true">W</span>
+                        <input type="number" step="1" class="field-input"
+                            x-model.number="tableAspectW"
+                            @input="saveCalibration()">
+                    </label>
+                    <label class="grid-offset-field">
+                        <span class="sr-only">Aspect height</span>
+                        <span class="grid-offset-label" aria-hidden="true">H</span>
+                        <input type="number" step="1" class="field-input"
+                            x-model.number="tableAspectH"
+                            @input="saveCalibration()">
+                    </label>
+                    <span class="field-suffix">aspect</span>
+                </div>
+
+                <button type="button" class="btn btn-ghost btn-sm"
+                        @click="toggleCalibrationSquare()"
+                        style="margin-top: 8px;">
+                    <span x-text="showCalibrationSquare ? 'Hide square on table' : 'Show square on table'"></span>
+                </button>
+
+                <p class="field-hint">
+                    The dashed 1&Prime; square appears on the <b>table display</b>.
+                    Hold a ruler to it there, then enter what it measures here.
+                </p>
+
+                <div class="grid-field-row">
+                    <label for="measuredInput" class="sr-only">Measured square on table (inches)</label>
+                    <input id="measuredInput" type="number" placeholder="1.00" step="0.01"
+                        class="field-input"
+                        @change="calibrate($event.target.value); $event.target.value = '';">
+                    <span class="field-suffix">inches</span>
+                </div>
+
+                <button type="button" class="btn btn-ghost btn-sm"
+                        @click="resetCalibration()">Reset calibration</button>
+            </div>
+        </details>
+
+        <!-- Grid Units-->
+        <details class="grid-calibration grid-units">
+            <summary>
+                <span>Grid units</span>
+                <span class="field-suffix" x-text="unitSummary()"></span>
+            </summary>
+            <div class="grid-calibration-body">
+
+                <label class="field-label" for="grid-units-per-cell">Units per cell</label>
+                <div class="grid-field-row">
+                    <input id="grid-units-per-cell" type="number" min="0" step="any"
+                        class="field-input"
+                        x-model.number="cellUnits"
+                        @input="onGridUnitsChange()">
+                    <span class="field-suffix" x-text="unitNounFor(cellUnits)"></span>
+                </div>
+
+                <div class="field-label" id="grid-unit-names-label">Unit names</div>
+                <div class="grid-field-row" role="group" aria-labelledby="grid-unit-names-label">
+                    <input type="text" class="field-input"
+                        x-model="unitNameSingular"
+                        @input="onGridUnitsChange()"
+                        maxlength="24"
+                        placeholder="foot"
+                        aria-label="Unit name, singular">
+                    <input type="text" class="field-input"
+                        x-model="unitNamePlural"
+                        @input="onGridUnitsChange()"
+                        maxlength="24"
+                        placeholder="feet"
+                        aria-label="Unit name, plural">
+                </div>
+
+                <div class="chips" role="group" aria-label="Unit presets">
+                    <button type="button" class="chip" @click="setGridUnits(5, 'foot', 'feet')">Feet</button>
+                    <button type="button" class="chip" @click="setGridUnits(1, 'metre', 'metres')">Metres</button>
+                    <button type="button" class="chip" @click="setGridUnits(1, 'league', 'leagues')">Leagues</button>
+                    <button type="button" class="chip" @click="setGridUnits(1, 'mile', 'miles')">Miles</button>
+                    <button type="button" class="chip" @click="setGridUnits(1, 'square', 'squares')">Squares</button>
+                </div>
+
+                <p class="field-hint">
+                    Used for measuring distances on the table — currently
+                    <b x-text="unitSummary()"></b>.
+                </p>
+            </div>
+        </details>
+
+    </div>
+</section>

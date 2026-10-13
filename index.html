@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DM Hub</title>
+    <link rel="stylesheet" href="../styles/index.css">
+    <!-- MODE SWITCH -->
+    <script>
+    window.MODE = (new URLSearchParams(location.search).get('mode') || 'dm');
+    document.documentElement.setAttribute('data-mode', window.MODE);
+    </script>
+</head>
+<body>
+    <a class="skip-link" href="#dmMain">Skip to main content</a>
+
+    <!-- ============================================================ -->
+    <!-- DM MODE -->
+    <!-- ============================================================ -->
+    <div id="dmApp" x-data="dmApp" x-cloak>
+        <div class="app-shell" :data-sidebar="sidebarOpen ? 'open' : 'collapsed'">
+
+            <!-- ============ LEFT SIDEBAR (Controls) ============ -->
+            <aside id="dmSidebar" class="panel" aria-label="Dungeon Master controls">
+
+                <!-- === BRAND HEADER === -->
+                <include file="src/components/brand-header.html"></include>
+
+                <div class="panel-body">
+
+                    <!-- === SCENE CARD === -->
+                    <include file="src/components/scene-card.html"></include>
+
+                    <!-- === GRID CARD === -->
+                    <include file="src/components/grid-card.html"></include>
+
+                    <!-- === POINTER CARD === -->
+                    <include file="src/components/pointer-card.html"></include>
+
+                    <!-- === DICE CARD === -->
+                    <include file="src/components/dice-card.html"></include>
+
+                    <!-- === INITIATIVE CARD === -->
+                    <include file="src/components/initiative-card.html"></include>
+
+                    <!-- === STATUS CARD === -->
+                    <include file="src/components/status-card.html"></include>
+                </div>
+            </aside>
+
+            <button type="button"
+                    class="sidebar-fab"
+                    x-show="!sidebarOpen"
+                    x-transition.opacity.duration.200ms
+                    :aria-expanded="sidebarOpen"
+                    aria-controls="dmSidebar"
+                    aria-label="Expand sidebar"
+                    @click="sidebarOpen = true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" aria-hidden="true">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+
+            <!-- ============ RIGHT STAGE (Table Display) ============ -->
+            <include file="src/components/dm-stage.html"></include>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PLAYER MODE (Table Display) -->
+    <!-- ============================================================ -->
+     <include file="src/components/player-stage.html"></include>
+
+    <!-- ===== LIBRARIES ===== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="../js/libraries/three.min.js"></script>
+    <script src="../js/libraries/cannon.min.js"></script>
+    <script src="../js/libraries/teal.js"></script>
+    <script src="../js/libraries/dice.js"></script>
+    <script src="../js/libraries/dieBuilder.js"></script>
+
+    <!-- shared -->
+    <script src="../js/shared/log.js"></script>
+    <script src="../js/shared/ids.js"></script>
+    <script src="../js/shared/dice-math.js"></script>
+
+    <!-- core -->
+    <script src="../js/core/channel.js"></script>
+    <script src="../js/core/shortcuts.js"></script>
+    <script src="../js/core/focus-trap.js"></script>
+
+    <!-- feature mixins -->
+    <script src="../js/features/initiative.js"></script>
+    <script src="../js/features/scene.js"></script>
+    <script src="../js/features/history.js"></script>
+    <script src="../js/features/status.js"></script>
+    <script src="../js/features/dice.js"></script>
+    <script src="../js/features/grid.js"></script>
+    <script src="../js/features/pointer.js"></script>
+    <script src="../js/features/shapes.js"></script>
+
+    <!-- composition roots -->
+    <script src="../js/dm.js"></script>
+    <script src="../js/player.js"></script>
+
+    <!-- ===== ALPINE ===== -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

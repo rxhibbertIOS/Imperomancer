@@ -1,0 +1,60 @@
+<!-- Status Card -->
+<section class="card" aria-labelledby="status-card-title">
+    <header class="card-head">
+        <h3 id="status-card-title" class="card-title">
+            <button type="button" class="card-toggle"
+                    @click="toggleCard('status')"
+                    :aria-expanded="openCard === 'status'"
+                    aria-controls="status-card-body">
+                <img class="app-icon" src="../assets/icons/bullhorn.svg" alt="" aria-hidden="true">
+                <span>Status</span>
+                <span class="card-head-right">
+                    <span class="accordion-arrow"
+                        aria-hidden="true"
+                        :class="{ open: openCard === 'status' }">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </span>
+                </span>
+            </button>
+        </h3>
+    </header>
+    <div id="status-card-body" class="card-body"
+            x-show="openCard === 'status'" x-transition.opacity>
+        <label for="statusMessage" class="sr-only">Status message</label>
+        <input id="statusMessage" type="text" class="field-input"
+            x-model="statusMessage"
+            placeholder="Type a message…"
+            @keydown.enter="sendStatus()">
+        <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" @click="sendStatus()">
+                <img class="app-icon" src="../assets/icons/bullhorn.svg" alt="" aria-hidden="true">Show</button>
+            <button type="button" class="btn btn-ghost btn-sm" @click="clearStatus()">
+                <img class="app-icon" src="../assets/icons/cancel.svg" alt="" aria-hidden="true">Clear</button>
+        </div>
+
+        <!-- Quick effects -->
+        <div class="field-label" id="quick-effects-label">Quick effects</div>
+        <div class="chips" role="group" aria-labelledby="quick-effects-label">
+            <button type="button" class="chip chip-danger" @click="focusEffect('critical')">
+                <span class="chip-icon" style="--icon: url('../assets/icons/damage.svg')" aria-hidden="true"></span>
+                Critical
+            </button>
+            <button type="button" class="chip chip-warn" @click="focusEffect('fail')">
+                <span class="chip-icon" style="--icon: url('../assets/icons/grave.svg')" aria-hidden="true"></span>
+                Fail
+            </button>
+            <button type="button" class="chip chip-primary" @click="focusEffect('combat')">
+                <span class="chip-icon" style="--icon: url('../assets/icons/crossed-swords.svg')" aria-hidden="true"></span>
+                Combat
+            </button>
+            <button type="button" class="chip chip-success" @click="focusEffect('victory')">
+                <span class="chip-icon" style="--icon: url('../assets/icons/trophy.svg')" aria-hidden="true"></span>
+                Victory
+            </button>
+        </div>
+    </div>
+</section>

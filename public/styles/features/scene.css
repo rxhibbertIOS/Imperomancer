@@ -1,0 +1,107 @@
+.scene-manager {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.scene-tabs {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
+    gap: 4px;
+    max-height: 68px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    grid-column: 1 / -1;
+    padding-right: 2px;
+}
+
+.scene-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 32px;
+    width: 100%;
+    min-height: 32px;
+    padding: 4px 9px;
+    color: var(--text-2);
+    background: var(--card-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
+    justify-content: space-between;
+}
+
+.scene-tab-active {
+    color: var(--text);
+    border-color: var(--gold);
+}
+
+.scene-tab-name {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scene-tab-live {
+    color: var(--green);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.scene-tab-draft {
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.scene-manager-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.scene-manager .field-label,
+.scene-manager .field-input {
+    grid-column: 1 / -1;
+}
+
+.scene-publish-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+.zoom-controls .mini-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+.zoom-controls .zoom-val {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.overlay-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}

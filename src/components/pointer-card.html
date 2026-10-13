@@ -1,0 +1,93 @@
+<!-- Pointer Card -->
+<section class="card" aria-labelledby="pointer-card-title">
+    <header class="card-head">
+        <h3 id="pointer-card-title" class="card-title">
+            <button type="button" class="card-toggle"
+                    @click="toggleCard('pointer')"
+                    :aria-expanded="openCard === 'pointer'"
+                    aria-controls="pointer-card-body">
+                <img class="app-icon" src="../assets/icons/pointer.svg" alt="" aria-hidden="true">
+                <span>Pointer</span>
+                <span class="card-head-right">
+                    <span class="chip chip-gold" x-show="focusMode">Active</span>
+                    <span class="accordion-arrow" aria-hidden="true"
+                        :class="{ open: openCard === 'pointer' }">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </span>
+                </span>
+            </button>
+        </h3>
+    </header>
+
+    <div id="pointer-card-body" class="card-body"
+        x-show="openCard === 'pointer'" x-transition.opacity>
+
+        <button type="button" class="btn"
+                :class="focusMode ? 'btn-primary' : 'btn-ghost'"
+                :aria-pressed="focusMode"
+                @click="toggleFocusMode()">
+            <img class="app-icon" src="../assets/icons/pointer.svg" alt="" aria-hidden="true">
+            <span x-text="focusMode ? 'Pointer Active — click the table' : 'Enable pointer'"></span>
+        </button>
+
+        <!-- ===== POINTER COLOUR ===== -->
+        <div class="field-label pointer-color-label" id="pointer-color-label">
+            <span>Pointer colour</span>
+            <span class="pointer-color-preview"
+                    aria-hidden="true"
+                    :style="`--swatch: ${pointerColor}`"></span>
+        </div>
+
+        <div class="swatch-scroll"
+                role="group"
+                aria-labelledby="pointer-color-label"
+                tabindex="0">
+            <template x-for="c in pointerColorPresets" :key="c">
+                <button type="button" class="swatch"
+                        :class="{ 'swatch-active': pointerColor === c }"
+                        :style="`--swatch: ${c}`"
+                        :aria-pressed="pointerColor === c"
+                        :title="c.toUpperCase()"
+                        :aria-label="'Pointer colour ' + c"
+                        @click="setPointerColor(c)">
+                    <span class="swatch-inner" aria-hidden="true"></span>
+                </button>
+            </template>
+        </div>
+
+        <div class="pointer-custom-row">
+            <label class="color-field" for="pointerCustomColor">
+                <input id="pointerCustomColor" type="color" class="color-input"
+                        :value="pointerColor"
+                        aria-label="Custom pointer colour"
+                        @input="setPointerColor($event.target.value)">
+                <span>Custom…</span>
+            </label>
+            <span class="pointer-hex" aria-live="polite"
+                    x-text="pointerColor.toUpperCase()"></span>
+            <button type="button" class="mini-btn"
+                    @click="setPointerColor(defaultPointerColor)"
+                    aria-label="Reset pointer colour"
+                    title="Reset pointer colour">
+                <img class="app-icon" src="../assets/icons/reset.svg" alt="" aria-hidden="true">
+            </button>
+        </div>
+
+        <p class="field-hint" x-show="!focusMode">
+            Drop a pulsing focus ring on the table to draw everyone's eye to a spot.
+        </p>
+        <p class="field-hint" x-show="focusMode">
+            Click anywhere on the preview to ping. Toggle off to pan again.
+        </p>
+
+        <div class="btn-row" x-show="focusPings.length > 0">
+            <button type="button" class="btn btn-ghost btn-sm" @click="clearFocusPings()">
+                <img class="app-icon" src="../assets/icons/image-minus.svg" alt="" aria-hidden="true"> Clear pings
+            </button>
+        </div>
+    </div>
+</section>

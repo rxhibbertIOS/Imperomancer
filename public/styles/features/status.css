@@ -1,0 +1,63 @@
+.status-msg {
+    position: absolute;
+    bottom: 40%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--text);
+    text-shadow: 0 4px 30px rgba(0,0,0,0.9), 0 0 60px var(--gold-glow);
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-align: center;
+    letter-spacing: -1px;
+    padding: 20px 40px;
+}
+.status-msg.visible { opacity: 1; }
+
+/* ============================================================
+   Status overlay — big, attention-grabbing, non-interactive.
+   Sits above the scene/grid but below the dice modal.
+   ============================================================ */
+.status-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5%;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 25;
+    pointer-events: none; /* DM can still click through to the stage */
+}
+
+.status-banner {
+    font-size: clamp(2rem, 6vw, 5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: #fff;
+    text-align: center;
+    max-width: 85%;
+    padding: 0.5em 0.9em;
+    background: rgba(18, 18, 28, 0.85);
+    border: 2px solid rgba(255, 200, 100, 0.55);
+    border-radius: 18px;
+    box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.7),
+        0 0 80px rgba(255, 180, 80, 0.18);
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
+    /* Plays each time the overlay goes from display:none → block */
+    animation: status-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes status-pop {
+    0%   { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Respect users who'd rather not have motion */
+@media (prefers-reduced-motion: reduce) {
+    .status-banner { animation: none; }
+}

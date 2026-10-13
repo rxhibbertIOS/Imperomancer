@@ -1,0 +1,324 @@
+<!-- Initiative Card -->
+<section class="card" aria-labelledby="initiative-card-title">
+    <header class="card-head">
+        <h3 id="initiative-card-title" class="card-title">
+            <button type="button" class="card-toggle"
+                    @click="toggleCard('initiative')"
+                    :aria-expanded="openCard === 'initiative'"
+                    aria-controls="initiative-card-body">
+                <img class="app-icon" src="../assets/icons/crossed-swords.svg" alt="" aria-hidden="true">
+                <span>Initiative</span>
+                <span class="card-head-right">
+                    <span class="chip"
+                        :class="initiativeActive ? 'chip-gold' : 'chip-muted'"
+                        x-text="initiativeActive ? 'Round ' + round : 'Setup'"></span>
+                    <span class="accordion-arrow"
+                        aria-hidden="true"
+                        :class="{ open: openCard === 'initiative' }">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </span>
+                </span>
+            </button>
+        </h3>
+    </header>
+
+    <div id="initiative-card-body" class="card-body"
+            x-show="openCard === 'initiative'" x-transition.opacity>
+        <!-- ==================== SETUP PHASE ==================== -->
+        <div x-show="!initiativeActive">
+            <div class="init-table-scroll">
+                <table class="init-table">
+                    <caption class="sr-only">Initiative setup</caption>
+                    <colgroup>
+                        <col>
+                        <col style="width: 28px;">
+                        <col style="width: 48px;">
+                        <col style="width: 48px;">
+                        <col style="width: 36px;">
+                        <col style="width: 22px;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col" title="Player character">PC</th>
+                            <th scope="col" title="Leave blank to auto-roll d20">Init</th>
+                            <th scope="col" title="Initiative modifier">Mod</th>
+                            <th scope="col" title="Dead / not in play">Dead</th>
+                            <th scope="col"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="row in initiativeRows" :key="row.id">
+                            <tr>
+                                <td>
+                                    <input type="text" x-model="row.name"
+                                        placeholder="Name"
+                                        aria-label="Combatant name"
+                                        @input="ensureTrailingBlank()">
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="checkbox" role="switch" x-model="row.isPlayer"
+                                        aria-label="Player character"
+                                        @change="ensureTrailingBlank()">
+                                </td>
+                                <td>
+                                    <input type="number" x-model.number="row.initiative"
+                                        placeholder="auto"
+                                        aria-label="Initiative (leave blank to auto-roll)"
+                                        @input="ensureTrailingBlank()">
+                                </td>
+                                <td>
+                                    <input type="text" x-model="row.bonus"
+                                        placeholder="0"
+                                        aria-label="Initiative modifier"
+                                        @input="ensureTrailingBlank()">
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="checkbox" role="switch" x-model="row.isDead"
+                                        aria-label="Dead or not in play"
+                                        @change="ensureTrailingBlank()">
+                                </td>
+                                <td style="text-align: center;">
+                                    <button type="button" class="init-remove-btn"
+                                            @click="removeInitiativeRow(row.id)"
+                                            :disabled="initiativeRows.length <= 1"
+                                            aria-label="Remove row"><img class="app-icon" src="../assets/icons/bin.svg" alt="" aria-hidden="true"></button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+            <div class="init-hint" x-show="validInitiativeRowCount() === 0">
+                Type a name to add a combatant. Leave Init blank to auto-roll.
+            </div>
+
+            <div class="btn-row">
+                <button type="button" class="btn btn-primary btn-sm"
+                        @click="enterInitiative()"
+                        :disabled="validInitiativeRowCount() === 0 || initiativeRolling">
+                    <span x-show="!initiativeRolling"><img class="app-icon" src="../assets/icons/enter.svg" alt="" aria-hidden="true"> Enter Initiative</span>
+                    <span x-show="initiativeRolling"><img class="app-icon" src="../assets/icons/refresh.svg" alt="" aria-hidden="true"> Rolling…</span>
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm"
+                        @click="clearInitiativeRows()"
+                        :disabled="initiativeRolling">
+                    <img class="app-icon" src="../assets/icons/bin.svg" alt="" aria-hidden="true"> Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== ACTIVE PHASE ==================== -->
+        <div x-show="initiativeActive">
+            <div class="init-status-row">
+                <span><img class="app-icon" src="../assets/icons/fast-forward.svg" alt="" aria-hidden="true"> Initiative Active</span>
+                <span class="turn-count" role="status" aria-live="polite"
+                    x-text="'Turn ' + (combatants.length ? (currentTurn + 1) : 0) + ' / ' + combatants.length"></span>
+            </div>
+
+            <!-- Display controls -->
+            <div class="init-display-bar" role="group" aria-label="Initiative display controls">
+                <button type="button" class="chip chip-sm"
+                        :class="{ 'chip-active': showInitiative }"
+                        :aria-pressed="showInitiative"
+                        @click="toggleOverlay('showInitiative')">Init</button>
+                <button type="button" class="chip chip-sm"
+                        :class="{ 'chip-active': initiative360 }"
+                        :aria-pressed="initiative360"
+                        @click="toggle360()">360°</button>
+
+                <!-- Non-360: expand/collapse -->
+                <button type="button" class="chip chip-sm"
+                        x-show="!initiative360"
+                        :class="{ 'chip-active': !initiativeCollapsed }"
+                        :aria-pressed="!initiativeCollapsed"
+                        @click="toggleCollapse()"
+                        x-text="initiativeCollapsed ? '⌃ Expand' : '⌄ Collapse'"></button>
+
+                <!-- 360: edge picker T/R/B/L -->
+                <div class="edge-toggles" x-show="initiative360"
+                        role="group" aria-label="360 degree edge toggles">
+                    <button type="button" class="chip chip-sm" :class="{ 'chip-active': edges.top }"
+                            :aria-pressed="edges.top"
+                            @click="toggleEdge('top')" aria-label="Top edge">T</button>
+                    <button type="button" class="chip chip-sm" :class="{ 'chip-active': edges.right }"
+                            :aria-pressed="edges.right"
+                            @click="toggleEdge('right')" aria-label="Right edge">R</button>
+                    <button type="button" class="chip chip-sm" :class="{ 'chip-active': edges.bottom }"
+                            :aria-pressed="edges.bottom"
+                            @click="toggleEdge('bottom')" aria-label="Bottom edge">B</button>
+                    <button type="button" class="chip chip-sm" :class="{ 'chip-active': edges.left }"
+                            :aria-pressed="edges.left"
+                            @click="toggleEdge('left')" aria-label="Left edge">L</button>
+                </div>
+
+                <!-- Update / Save -->
+                <button type="button" class="chip chip-sm chip-primary update-chip"
+                        x-show="!initiativeEditing"
+                        @click="startInitiativeEdit()">
+                    <img class="app-icon" src="../assets/icons/edit.svg" alt="" aria-hidden="true"> Update
+                </button>
+                <button type="button" class="chip chip-sm chip-primary update-chip"
+                        x-show="initiativeEditing"
+                        @click="saveInitiativeEdit()"
+                        :disabled="initiativeRolling">
+                    <span x-show="!initiativeRolling"><img class="app-icon" src="../assets/icons/save.svg" alt="" aria-hidden="true"> Save</span>
+                    <span x-show="initiativeRolling"><img class="app-icon" src="../assets/icons/refresh.svg" alt="" aria-hidden="true"> Rolling…</span>
+                </button>
+            </div>
+
+            <!-- ==================== READ-ONLY VIEW ==================== -->
+            <div x-show="!initiativeEditing">
+                <div class="init-table-scroll">
+                    <table class="init-table readonly">
+                        <caption class="sr-only">Active initiative order</caption>
+                        <colgroup>
+                            <col>
+                            <col style="width: 30px;">
+                            <col style="width: 46px;">
+                            <col style="width: 34px;">
+                            <col style="width: 34px;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col" title="Player character">PC</th>
+                                <th scope="col" title="Initiative">Init</th>
+                                <th scope="col" title="Dead / not in play"><img class="app-icon" src="../assets/icons/grave.svg" alt="" aria-hidden="true"><span class="sr-only">Dead</span></th>
+                                <th scope="col"><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(c, i) in combatants" :key="c.id">
+                                <tr :class="{ active: i === currentTurn, dead: c.isDead, 'is-player': c.isPlayer }"
+                                    :aria-current="i === currentTurn ? 'true' : null">
+                                    <td class="init-name-cell" x-text="c.name"></td>
+                                    <td class="init-center-cell">
+                                        <span class="sr-only" x-show="c.isPlayer">Player character</span>
+                                        <span aria-hidden="true" x-text="c.isPlayer ? '●' : ''"></span>
+                                    </td>
+                                    <td class="init-center-cell" x-text="c.initiative"></td>
+                                    <td class="init-center-cell">
+                                        <button type="button" class="mini-btn" :class="{ 'active-dead': c.isDead }"
+                                                @click.stop="toggleDead(c.id)"
+                                                :aria-pressed="c.isDead"
+                                                :aria-label="(c.isDead ? 'Revive ' : 'Mark dead ') + c.name">
+                                            <img class="app-icon" src="../assets/icons/skull.svg" alt="" aria-hidden="true">
+                                        </button>
+                                    </td>
+                                    <td class="init-center-cell">
+                                        <button type="button" class="mini-btn danger"
+                                                @click.stop="removeCombatant(c.id)"
+                                                :aria-label="'Remove ' + c.name">
+                                            <img class="app-icon" src="../assets/icons/bin.svg" alt="" aria-hidden="true">
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                            <template x-if="!combatants.length">
+                                <tr><td colspan="5" class="history-empty" style="padding: 10px;">No combatants</td></tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="btn-row">
+                    <button type="button" class="btn btn-ghost btn-sm" @click="prevTurn()">
+                        <img class="app-icon" src="../assets/icons/arrow-backward.svg" alt="" aria-hidden="true"> Prev
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" @click="nextTurn()">
+                        <img class="app-icon" src="../assets/icons/arrow-forward.svg" alt="" aria-hidden="true"> Next Turn
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm" @click="exitInitiative()">
+                        <img class="app-icon" src="../assets/icons/exit.svg" alt="" aria-hidden="true"> End
+                    </button>
+                </div>
+            </div>
+
+            <!-- ==================== EDIT VIEW ==================== -->
+            <div x-show="initiativeEditing">
+                <table class="init-table">
+                    <caption class="sr-only">Edit initiative</caption>
+                    <colgroup>
+                        <col>
+                        <col style="width: 28px;">
+                        <col style="width: 48px;">
+                        <col style="width: 48px;">
+                        <col style="width: 36px;">
+                        <col style="width: 22px;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col" title="Player character">PC</th>
+                            <th scope="col" title="Leave blank to auto-roll d20">Init</th>
+                            <th scope="col" title="Initiative modifier">Mod</th>
+                            <th scope="col" title="Dead / not in play">Dead</th>
+                            <th scope="col"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="row in initiativeRows" :key="row.id">
+                            <tr>
+                                <td>
+                                    <input type="text" x-model="row.name"
+                                        placeholder="Name"
+                                        aria-label="Combatant name"
+                                        @input="ensureTrailingBlank()">
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="checkbox" role="switch" x-model="row.isPlayer"
+                                        aria-label="Player character"
+                                        @change="ensureTrailingBlank()">
+                                </td>
+                                <td>
+                                    <input type="number" x-model.number="row.initiative"
+                                        placeholder="auto"
+                                        aria-label="Initiative (leave blank to auto-roll)"
+                                        @input="ensureTrailingBlank()">
+                                </td>
+                                <td>
+                                    <input type="text" x-model="row.bonus"
+                                        placeholder="0"
+                                        aria-label="Initiative modifier"
+                                        @input="ensureTrailingBlank()">
+                                </td>
+                                <td style="text-align: center;">
+                                    <input type="checkbox" role="switch" x-model="row.isDead"
+                                        aria-label="Dead or not in play"
+                                        @change="ensureTrailingBlank()">
+                                </td>
+                                <td style="text-align: center;">
+                                    <button type="button" class="init-remove-btn"
+                                            @click="removeInitiativeRow(row.id)"
+                                            :disabled="initiativeRows.length <= 1"
+                                            aria-label="Remove row"><img class="app-icon" src="../assets/icons/bin.svg" alt="" aria-hidden="true"></button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                <div class="init-hint" x-show="validInitiativeRowCount() === 0">
+                    Add at least one combatant to save.
+                </div>
+
+                <div class="btn-row">
+                    <button type="button" class="btn btn-primary btn-sm"
+                            @click="saveInitiativeEdit()"
+                            :disabled="initiativeRolling || validInitiativeRowCount() === 0">
+                        <span x-show="!initiativeRolling"><img class="app-icon" src="../assets/icons/save.svg" alt="" aria-hidden="true"> Save Changes</span>
+                        <span x-show="initiativeRolling"><img class="app-icon" src="../assets/icons/refresh.svg" alt="" aria-hidden="true"> Rolling…</span>
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm"
+                            @click="cancelInitiativeEdit()"
+                            :disabled="initiativeRolling">
+                        <img class="app-icon" src="../assets/icons/cancel.svg" alt="" aria-hidden="true"> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

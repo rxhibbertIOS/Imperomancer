@@ -1,0 +1,52 @@
+:root {
+    --bg:         #07080b;
+    --panel-1:    #0d1015;
+    --panel-2:    #12161d;
+    --card-1:     #151a22;
+    --card-2:     #1a202a;
+    --border:     #232a36;
+    --border-2:   #2e3644;
+
+    --text:       #e8eaf0;
+    --text-2:     #8a93a6;
+    --text-3:     #59616f;
+
+    --gold:       #e0b25f;
+    --gold-2:     #f3d194;
+    --gold-dim:   #8a6a2f;
+    --gold-glow:  rgba(224,178,95,0.15);
+
+    --green:      #5fd07a;
+    --red:        #e05f5f;
+    --blue:       #5fa8e0;
+    --purple:     #a55fe0;
+
+    --radius-sm:  9px;
+    --radius:     13px;
+    --radius-lg:  20px;
+    --radius-xl:  26px;
+
+    --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
+    --shadow:     0 4px 12px rgba(0,0,0,0.5);
+    --shadow-lg:  0 12px 40px rgba(0,0,0,0.6);
+    --shadow-gold: 0 0 30px rgba(224,178,95,0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+[x-cloak] { display: none !important; }
+
+/* Mode visibility — hides the wrong app before Alpine runs */
+html[data-mode="player"] #dmApp    { display: none !important; }
+html[data-mode="dm"]     #playerApp { display: none !important; }
+
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+
+button, input { font-family: inherit; }
