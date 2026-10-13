@@ -9,8 +9,21 @@
                 <img class="app-icon" src="../assets/icons/dice-d20.svg" alt="" aria-hidden="true">
                 <span>Dice</span>
                 <span class="card-head-right">
-                    <span class="accordion-arrow"
-                        aria-hidden="true"
+                    <!-- Last roll summary (notation : result) -->
+                    <span class="chip chip-muted chip-roll-summary"
+                          x-show="lastResult"
+                          x-transition.opacity
+                          x-text="lastRollLabel()"
+                          :title="lastResult ? lastResult.notation + ' = ' + lastResult.total : ''"
+                          aria-hidden="true"></span>
+                    <!-- Current roll mode (icon only) -->
+                    <span class="chip chip-roll-mode"
+                          :class="rollMode === 'public' ? 'chip-gold' : 'chip-muted'"
+                          :aria-label="'Roll visibility: ' + rollMode">
+                        <img class="app-icon" x-show="rollMode === 'public'" src="../assets/icons/visible.svg" alt="" aria-hidden="true">
+                        <img class="app-icon" x-show="rollMode !== 'public'" src="../assets/icons/invisible.svg" alt="" aria-hidden="true">
+                    </span>
+                    <span class="accordion-arrow" aria-hidden="true"
                         :class="{ open: openCard === 'dice' }">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2"
@@ -21,19 +34,24 @@
                 </span>
             </button>
         </h3>
-        <button type="button" class="chip"
-                :class="rollMode === 'public' ? 'chip-gold' : 'chip-muted'"
-                :aria-pressed="rollMode === 'public'"
-                @click="rollMode = rollMode === 'public' ? 'private' : 'public'"
-                :aria-label="'Roll visibility: ' + (rollMode === 'public' ? 'public' : 'private')">
-            <img class="app-icon" x-show="rollMode === 'public'" src="../assets/icons/visible.svg" alt="" aria-hidden="true">
-            <img class="app-icon" x-show="rollMode !== 'public'" src="../assets/icons/invisible.svg" alt="" aria-hidden="true">
-            <span x-text="rollMode === 'public' ? 'Public' : 'Private'"></span>
-        </button>
     </header>
 
     <div id="dice-card-body" class="card-body"
         x-show="openCard === 'dice'" x-transition.opacity>
+
+        <!-- Roll mode toggle -->
+        <label class="switch-row roll-mode-row">
+            <input type="checkbox" role="switch"
+                   :checked="rollMode === 'public'"
+                   @change="rollMode = $event.target.checked ? 'public' : 'private'">
+            <span class="roll-mode-label">
+                <img class="app-icon" x-show="rollMode === 'public'" src="../assets/icons/visible.svg" alt="" aria-hidden="true">
+                <img class="app-icon" x-show="rollMode !== 'public'" src="../assets/icons/invisible.svg" alt="" aria-hidden="true">
+                <span x-text="rollMode === 'public' ? 'Public roll' : 'Private roll'"></span>
+            </span>
+        </label>
+
+        <!-- Notation row -->
         <div class="notation-row">
             <label for="diceNotationInput" class="sr-only">Dice notation</label>
             <input id="diceNotationInput" type="text" class="notation-field"
@@ -41,45 +59,6 @@
                 placeholder="2d6+3"
                 autocomplete="off"
                 spellcheck="false">
-        </div>
-
-        <div class="notation-popup"
-            x-show="showNotationPopup"
-            x-transition.opacity
-            @click.outside="showNotationPopup = false"
-            role="group"
-            aria-label="Dice notation builder">
-            <div class="popup-section">
-                <div class="popup-label" id="die-group-label">Die</div>
-                <div class="chips" role="group" aria-labelledby="die-group-label">
-                    <template x-for="d in ['d4','d6','d8','d10','d12','d20','d100']" :key="d">
-                        <button type="button" class="chip" @click="appendDie(d)" x-text="d"></button>
-                    </template>
-                </div>
-            </div>
-            <div class="popup-section">
-                <div class="popup-label" id="mod-group-label">Modifier</div>
-                <div class="chips" role="group" aria-labelledby="mod-group-label">
-                    <template x-for="m in ['-5','-3','-2','-1','+1','+2','+3','+5']" :key="m">
-                        <button type="button" class="chip" @click="appendModifier(m)" x-text="m"></button>
-                    </template>
-                </div>
-            </div>
-            <div class="popup-section">
-                <div class="popup-label" id="preset-group-label">Presets</div>
-                <div class="chips" role="group" aria-labelledby="preset-group-label">
-                    <button type="button" class="chip" @click="diceNotation = '1d20'">Attack</button>
-                    <button type="button" class="chip" @click="diceNotation = '2d20kh1'">Advantage</button>
-                    <button type="button" class="chip" @click="diceNotation = '2d20kl1'">Disadvantage</button>
-                    <button type="button" class="chip" @click="diceNotation = '4d6kh3'">Stats</button>
-                    <button type="button" class="chip" @click="diceNotation = '8d6'">Fireball</button>
-                    <button type="button" class="chip" @click="diceNotation = '1d100'">d100</button>
-                </div>
-            </div>
-            <div class="popup-actions">
-                <button type="button" class="btn btn-ghost btn-sm" @click="diceNotation = ''">Clear</button>
-                <button type="button" class="btn btn-primary btn-sm" @click="showNotationPopup = false">Done</button>
-            </div>
         </div>
 
         <label for="diceMessage" class="field-label">Message (optional)</label>
@@ -111,7 +90,6 @@
                 <span class="field-suffix" x-text="rollHistory.length"></span>
             </summary>
             <div class="grid-calibration-body">
-
                 <div class="chips" role="group" aria-label="Filter roll history">
                     <template x-for="f in historyFilters" :key="f">
                         <button type="button" class="chip"

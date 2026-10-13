@@ -35,38 +35,6 @@
 }
 .notation-btn:hover { background: #232a36; color: var(--gold); }
 
-.notation-popup {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    margin-top: 6px;
-    background: linear-gradient(180deg, #1a202a, #151a22);
-    border: 1px solid var(--border-2);
-    border-radius: var(--radius);
-    padding: 12px;
-    z-index: 100;
-    box-shadow: var(--shadow-lg);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.popup-section { display: flex; flex-direction: column; gap: 6px; }
-.popup-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: var(--text-3);
-    font-weight: 500;
-}
-.popup-actions {
-    display: flex;
-    gap: 6px;
-    justify-content: flex-end;
-    padding-top: 6px;
-    border-top: 1px solid var(--border);
-}
-
 /* ============================================================
    3D DICE OVERLAY
    ============================================================ */
@@ -180,3 +148,28 @@
     text-align: center;
 }
 .result-modal .btn { margin-top: 14px; }
+
+/* Dice card header — last roll summary chip, truncated */
+.chip-roll-summary {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Dice card header — mode chip is icon-only, keeps chip padding tight */
+.chip-roll-mode {
+    padding-inline: 8px;
+}
+
+/* Roll mode toggle inside the card body */
+.roll-mode-row .roll-mode-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.roll-mode-row .app-icon {
+    width: 14px;
+    height: 14px;
+}

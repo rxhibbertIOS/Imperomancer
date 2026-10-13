@@ -24,8 +24,39 @@ window.diceFeature = function() {
                 WARN('DieBuilder not loaded — notation popup disabled');
                 return;
             }
+
             const builder = new DieBuilder({
-                theme: { mode: 'dark' },
+                theme: {
+                    mode: 'dark',
+                    colors: {
+                        // Accents — pull straight from your Imperomancer palette
+                        primary:      'var(--gold)',
+                        primaryHover: 'var(--gold-2)',
+                        primaryRing:  'var(--gold-glow)',
+
+                        // Surfaces — match the card interior
+                        background:   '#151a22',
+                        surface:      '#1a202a',
+                        surfaceHover: '#232a36',
+
+                        // Text hierarchy
+                        text:         'var(--text)',
+                        textMuted:    'var(--text-2)',
+                        textSubtle:   'var(--text-3)',
+
+                        // Borders
+                        border:       'var(--border-2)',
+                        borderHover:  'var(--gold-dim)',
+                        borderSubtle: 'var(--border)',
+
+                        // Inputs & shadows
+                        inputBg:      'rgba(0, 0, 0, 0.4)',
+                        shadow:       'var(--shadow-lg)',
+
+                        // Typography
+                        fontFamily:   'inherit',
+                    },
+                },
                 labels: { title: 'Dice Notation' },
                 callbacks: {
                     onAccept: (notation) => {
@@ -34,8 +65,12 @@ window.diceFeature = function() {
                     },
                 },
             });
+
             builder.attachTo('#diceNotationInput', {
-                popup: { trigger: 'focus', width: '560px' },
+                popup: {
+                    trigger: 'both',
+                    width: '520px',
+                },
             });
         },
 
@@ -185,6 +220,24 @@ window.diceFeature = function() {
                 ? `${results.join(' + ')}${parsed.mod ? ` ${parsed.mod > 0 ? '+' : ''}${parsed.mod}` : ''} = ${total}`
                 : `${results[0]}${parsed.mod ? ` ${parsed.mod > 0 ? '+' : ''}${parsed.mod}` : ''} = ${total}`;
             return { resultTotal: total, resultString, result: results, constant: parsed.mod };
+        },
+
+        /* ---------- HEADER SUMMARY ---------- */
+        lastRollLabel() {
+            if (!this.lastResult) return '';
+            const notation = this.lastResult.notation || '?';
+            const total    = this.lastResult.total ?? '?';
+            return `${notation}: ${total}`;
+        },
+
+        /* ---------- NOTATION POPUP ---------- */
+        openNotationBuilder() {
+            const input = document.getElementById('diceNotationInput');
+            if (!input) return;
+            input.focus();
+            // If DieBuilder opened its popup but didn't position it (some versions
+            // need a manual nudge), re-dispatch a click to be safe:
+            // input.click();
         },
     };
 };
