@@ -110,21 +110,7 @@
             <div id="playerDiceContainer" class="dice-tray dice-tray-full" aria-hidden="true"></div>
 
             <!-- Player Result Modal -->
-            <div class="modal-scrim" x-show="showResultModal" x-transition.opacity>
-                <div class="result-modal"
-                        role="status"
-                        aria-live="assertive"
-                        aria-atomic="true">
-                    <h2 id="player-result-title" class="sr-only">Dice roll result</h2>
-                    <div class="result-tag" x-text="lastResult?.tag || 'Roll'"></div>
-                    <div class="result-notation" x-text="lastResult?.notation"></div>
-                    <div class="result-number" role="status" aria-live="polite"
-                            :class="{ critical: lastResult?.critical, fail: lastResult?.fail }"
-                            x-text="lastResult?.total"></div>
-                    <div class="result-breakdown" x-text="lastResult?.breakdown"></div>
-                    <div class="result-message" x-show="lastResult?.message" x-text="lastResult?.message"></div>
-                </div>
-            </div>
+            <include file="modals/dice-result.html"></include>
         </div>
     </div>
 </div>

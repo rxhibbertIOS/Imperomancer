@@ -1,0 +1,89 @@
+<!-- Dice Result Modal -->
+<template x-if="showResultModal">
+  <div class="modal-scrim"
+       x-transition.opacity
+       :role="window.MODE === 'player' ? 'status' : 'dialog'"
+       :aria-modal="window.MODE === 'player' ? null : 'true'"
+       :aria-live="window.MODE === 'player' ? 'assertive' : null"
+       @click.self="window.MODE !== 'player' && (showResultModal = false)"
+       @keydown.escape.window="window.MODE !== 'player' && (showResultModal = false)">
+
+    <div class="result-modal"
+         :class="{
+           'modal-critical': lastResult?.critical,
+           'modal-fail':     lastResult?.fail && !lastResult?.critical,
+           'modal-error':    lastResult?.error,
+         }">
+
+      <template x-if="lastResult?.critical">
+        <div class="result-ribbon ribbon-crit">CRITICAL</div>
+      </template>
+      <template x-if="lastResult?.fail && !lastResult?.critical">
+        <div class="result-ribbon ribbon-fail">FAIL</div>
+      </template>
+
+      <h2 class="sr-only">Dice roll result</h2>
+
+      <div class="result-tag"      x-text="lastResult?.tag"></div>
+      <div class="result-notation" x-text="lastResult?.notation"></div>
+
+      <div class="result-number"
+           role="status" aria-live="polite"
+           :class="{ critical: lastResult?.critical,
+                     fail:     lastResult?.fail,
+                     error:    lastResult?.error }"
+           x-text="lastResult?.total"></div>
+
+      <template x-if="lastResult?.diceResults?.length">
+        <div class="die-grid" role="list">
+          <template x-for="(die, i) in lastResult.diceResults" :key="i">
+            <div class="die-tile" role="listitem"
+                 :class="dieClass(die)"
+                 :style="`animation-delay:${i * 40}ms`"
+                 x-text="die.value"></div>
+          </template>
+        </div>
+      </template>
+
+      <template x-if="lastResult?.hasTarget">
+        <div class="count-summary">
+          <div class="count-block count-success">
+            <span class="count-num" x-text="lastResult.successCount"></span>
+            <span class="count-lbl">successes</span>
+          </div>
+          <div class="count-block count-fail">
+            <span class="count-num" x-text="lastResult.failureCount"></span>
+            <span class="count-lbl">fails</span>
+          </div>
+        </div>
+      </template>
+
+      <div class="result-breakdown" x-text="lastResult?.breakdown"></div>
+
+      <template x-if="lastResult?.message">
+        <div class="result-message" x-text="lastResult.message"></div>
+      </template>
+
+      <template x-if="lastResult?.audit?.length">
+        <details class="result-audit">
+          <summary>
+            <span>Rule log</span>
+            <span class="audit-count" x-text="lastResult.audit.length"></span>
+          </summary>
+          <ul>
+            <template x-for="(line, i) in lastResult.audit" :key="i">
+              <li x-text="line"></li>
+            </template>
+          </ul>
+        </details>
+      </template>
+
+      <template x-if="window.MODE !== 'player'">
+        <div class="result-actions">
+          <button type="button" class="btn btn-ghost btn-sm"
+                  @click="showResultModal = false">Close</button>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>

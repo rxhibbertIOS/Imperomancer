@@ -2,7 +2,9 @@
  * DM-side dice: notation input, private rolls (silent), public rolls
  * (delegated to the player tab), result modal, and history writes.
  *
- * Depends on historyFeature() for addToHistory().
+ * Depends on:
+ *   - historyFeature() for addToHistory()
+ *   - normalizeDiceResult() from shared/dice-result.js
  */
 window.diceFeature = function() {
     return {
@@ -29,31 +31,20 @@ window.diceFeature = function() {
                 theme: {
                     mode: 'dark',
                     colors: {
-                        // Accents — pull straight from your Imperomancer palette
                         primary:      'var(--gold)',
                         primaryHover: 'var(--gold-2)',
                         primaryRing:  'var(--gold-glow)',
-
-                        // Surfaces — match the card interior
                         background:   '#151a22',
                         surface:      '#1a202a',
                         surfaceHover: '#232a36',
-
-                        // Text hierarchy
                         text:         'var(--text)',
                         textMuted:    'var(--text-2)',
                         textSubtle:   'var(--text-3)',
-
-                        // Borders
                         border:       'var(--border-2)',
                         borderHover:  'var(--gold-dim)',
                         borderSubtle: 'var(--border)',
-
-                        // Inputs & shadows
                         inputBg:      'rgba(0, 0, 0, 0.4)',
                         shadow:       'var(--shadow-lg)',
-
-                        // Typography
                         fontFamily:   'inherit',
                     },
                 },
@@ -68,7 +59,6 @@ window.diceFeature = function() {
                     placement: 'right',
                     offset: 20
                 }
-
             });
 
             builder.attachTo('#diceNotationInput', {
@@ -124,27 +114,19 @@ window.diceFeature = function() {
 
             this.diceRolling = false;
 
-            if (!result || result.error) {
-                this.lastResult = {
+            // detectCritFail supplies crit/fail for legacy notations the library
+            // may not self-report (e.g. bare d20 = 20).
+            const { critical, fail } = detectCritFail(notation, result || {});
+
+            this.lastResult = normalizeDiceResult(
+                Object.assign({}, result, { critical, fail }),
+                {
                     notation,
-                    total: '?',
-                    breakdown: result?.errorMessage || result?.resultString || 'Invalid notation',
                     rollMode: 'private',
-                };
-                this.showResultModal = true;
-                return;
-            }
-
-            const total     = result.resultTotal ?? 0;
-            const breakdown = result.resultString || `${notation} = ${total}`;
-            const { critical, fail } = detectCritFail(notation, result);
-
-            this.lastResult = {
-                notation, total, breakdown,
-                message: this.diceMessage,
-                critical, fail,
-                rollMode: 'private',
-            };
+                    message: this.diceMessage,
+                    tag: 'Private Roll',
+                }
+            );
             this.showResultModal = true;
 
             this.addToHistory({
@@ -152,14 +134,14 @@ window.diceFeature = function() {
                 time:     Date.now(),
                 rollMode: 'private',
                 roller:   'DM',
-                name:     this.diceMessage || '',
-                notation,
-                total,
-                critical,
-                fail,
+                name:     this.lastResult.message,
+                notation: this.lastResult.notation,
+                total:    this.lastResult.total,
+                critical: this.lastResult.critical,
+                fail:     this.lastResult.fail,
             });
             this.diceMessage = '';
-            LOG(`🔒 Private roll: ${notation} = ${total}`);
+            LOG(`🔒 Private roll: ${notation} = ${this.lastResult.total}`);
         },
 
         /* ---------- PUBLIC ROLL (hands off to player) ---------- */
@@ -189,11 +171,12 @@ window.diceFeature = function() {
             clearTimeout(this._publicRollTimeout);
             this.diceRolling = false;
 
-            const { notation = '?', total = 0, breakdown = '', message = '',
-                    critical = false, fail = false, tag = 'Roll' } = data || {};
-
-            this.lastResult = { notation, total, breakdown, message, critical, fail,
-                                rollMode: 'public', tag };
+            this.lastResult = normalizeDiceResult(data, {
+                notation: data?.notation,
+                rollMode: 'public',
+                message:  data?.message,
+                tag:      data?.tag || 'Roll',
+            });
             this.showResultModal = true;
 
             this.addToHistory({
@@ -201,16 +184,16 @@ window.diceFeature = function() {
                 time:     Date.now(),
                 rollMode: 'public',
                 roller:   'DM',
-                name:     message || '',
-                notation,
-                total,
-                critical,
-                fail,
+                name:     this.lastResult.message,
+                notation: this.lastResult.notation,
+                total:    this.lastResult.total,
+                critical: this.lastResult.critical,
+                fail:     this.lastResult.fail,
             });
 
             LOG('DM modal opened with:', this.lastResult);
             clearTimeout(this._dmModalTimer);
-            this._dmModalTimer = setTimeout(() => { this.showResultModal = false; }, 2500);
+            this._dmModalTimer = setTimeout(() => { this.showResultModal = false; }, 3500);
         },
 
         /* ---------- FALLBACK ---------- */
@@ -240,9 +223,6 @@ window.diceFeature = function() {
             const input = document.getElementById('diceNotationInput');
             if (!input) return;
             input.focus();
-            // If DieBuilder opened its popup but didn't position it (some versions
-            // need a manual nudge), re-dispatch a click to be safe:
-            // input.click();
         },
     };
 };
