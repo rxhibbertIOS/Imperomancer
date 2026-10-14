@@ -64,6 +64,11 @@ window.diceFeature = function() {
                         LOG('✅ DieBuilder accepted notation:', notation);
                     },
                 },
+                popup: {
+                    placement: 'right',
+                    offset: 20
+                }
+
             });
 
             builder.attachTo('#diceNotationInput', {
