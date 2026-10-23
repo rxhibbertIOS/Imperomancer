@@ -283,14 +283,28 @@ function playerApp() {
             }
 
             try {
-                diceBox = new DICE.dice_box(container, {
-                    scale: 1.0, lightIntensity: 0.9, gravity: 1.0,
-                    throwForce: 3.0, friction: 0.3, restitution: 0.3,
-                    color: '#ffd700', background: 'transparent',
-                    fontColor: '#ffffff', borderColor: '#ffd700',
-                    shadow: true, shadowColor: 'rgba(0,0,0,0.6)',
-                    desk_opacity: 0,
+                // The DICE.dice_box constructor only accepts the container.
+                // Any second argument is silently ignored — appearance must be
+                // applied via setConfig() after construction.
+                diceBox = new DICE.dice_box(container);
+
+                diceBox.setConfig({
+                    size_multiplier:      1.0,
+                    spot_light_intensity: 0.9,
+                    dice_color:           '#ffd700',
+                    label_color:          '#ffffff',
+                    use_shadows:          true,
+                    desk_opacity:         0,
                 });
+
+                // Note: setParam('dice_friction' | 'dice_restitution') is a
+                // no-op in this library build — it calls _updateContactMaterials
+                // without storing the new value first. Apply directly instead.
+                if (diceBox._deskDiceContact) {
+                    diceBox._deskDiceContact.friction    = 0.3;
+                    diceBox._deskDiceContact.restitution = 0.3;
+                }
+
                 LOG('✅ Player dice box ready');
             } catch (err) {
                 ERR('Player dice box init failed:', err);
@@ -317,32 +331,43 @@ function playerApp() {
             this.diceRolling = true;
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
+            // Race against a safety timeout: the library's own roll_timeout_ms
+            // only resets its `rolling` flag — it does not reject start_throw().
+            let playerRollTimer = null;
             try {
                 diceBox.setDice(notation);
-                const result = await diceBox.start_throw();
+                const result = await Promise.race([
+                    diceBox.start_throw(),
+                    new Promise(resolve => {
+                        playerRollTimer = setTimeout(() => {
+                            WARN('Player roll timed out — using fallback');
+                            resolve(null);
+                        }, 25000);
+                    }),
+                ]);
+                clearTimeout(playerRollTimer);
                 LOG('🎲 start_throw resolved:', result);
 
                 if (!result || result.error) {
-                    WARN('Dice roll returned an error – using fallback');
+                    WARN('Dice roll returned an error or timed out – using fallback');
                     this.diceRolling = false;
                     this._broadcastResult(this._fallbackResult(notation));
                     return;
                 }
 
-                const total     = result.resultTotal ?? 0;
-                const breakdown = result.resultString || `${notation} = ${total}`;
                 const { critical, fail } = detectCritFail(notation, result);
 
                 this.diceRolling = false;
                 this._broadcastResult({
                     notation,
-                    total,
-                    breakdown,
                     message: this.pendingRoll?.message || '',
-                    critical, fail,
                     tag: this.pendingRoll?.tag || 'Roll',
+                    // Forward the full library result so the DM can normalize it
+                    // with per-die tiles, audit trail, success/failure counts, etc.
+                    raw: { ...result, critical, fail },
                 });
             } catch (err) {
+                clearTimeout(playerRollTimer);
                 ERR('start_throw threw:', err);
                 this.diceRolling = false;
                 this._broadcastResult(this._fallbackResult(notation));
@@ -353,7 +378,19 @@ function playerApp() {
             channel.postMessage({ type: 'publicRollResult', ...payload });
             LOG('📤 Result sent to DM:', payload);
 
-            this.lastResult = payload;
+            // Player-side 2.5s toast reads flattened fields for convenience.
+            const raw = payload.raw || {};
+            this.lastResult = {
+                notation:  payload.notation,
+                total:     raw.resultTotal ?? 0,
+                breakdown: raw.error
+                    ? (raw.errorMessage || 'Invalid notation')
+                    : (raw.resultString || `${payload.notation} = ${raw.resultTotal ?? 0}`),
+                message:   payload.message,
+                tag:       payload.tag,
+                critical:  !!raw.critical,
+                fail:      !!raw.fail,
+            };
             this.showResultModal = true;
             clearTimeout(this._modalTimer);
             this._modalTimer = setTimeout(() => { this.showResultModal = false; }, 2500);
@@ -365,23 +402,37 @@ function playerApp() {
             const parsed = window.parseNotation(notation);
             if (!parsed) {
                 return {
-                    notation, total: 0, breakdown: 'Invalid notation',
+                    notation,
                     message: this.pendingRoll?.message || '',
-                    critical: false, fail: false,
                     tag: this.pendingRoll?.tag || 'Roll',
+                    raw: {
+                        error: true,
+                        errorMessage: 'Invalid notation',
+                        resultTotal: 0,
+                        resultString: 'Invalid notation',
+                    },
                 };
             }
             const results = [];
             for (let i = 0; i < parsed.count; i++) results.push(window.roll(parsed.sides));
             const sum = results.reduce((a, b) => a + b, 0);
             const total = sum + parsed.mod;
-            const breakdown = `${results.join(' + ')}${parsed.mod ? ` ${parsed.mod > 0 ? '+' : ''}${parsed.mod}` : ''} = ${total}`;
+            const resultString = `${results.join(' + ')}${parsed.mod ? ` ${parsed.mod > 0 ? '+' : ''}${parsed.mod}` : ''} = ${total}`;
+            const critical = parsed.sides === 20 && parsed.count === 1 && results[0] === 20;
+            const fail     = parsed.sides === 20 && parsed.count === 1 && results[0] === 1;
             return {
-                notation, total, breakdown,
+                notation,
                 message: this.pendingRoll?.message || '',
-                critical: parsed.sides === 20 && parsed.count === 1 && results[0] === 20,
-                fail:     parsed.sides === 20 && parsed.count === 1 && results[0] === 1,
                 tag: this.pendingRoll?.tag || 'Roll',
+                raw: {
+                    resultTotal: total,
+                    resultString,
+                    result: results,
+                    constant: parsed.mod || 0,
+                    diceResults: results.map((v, i) => ({ diceId: i, value: v, kept: true })),
+                    critical,
+                    fail,
+                },
             };
         },
     };

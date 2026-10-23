@@ -128,6 +128,15 @@
                 </div>
             </div>
         </details>
-
+        <template x-if="window.MODE === 'dm' && lastRawResult">
+            <details class="result-tree">
+                <summary>
+                    <span>Raw result</span>
+                    <span class="audit-count" x-text="rawResultKeyCount(lastRawResult) + ' keys'"></span>
+                </summary>
+                <div class="result-tree-body"
+                    x-html="renderResultTree(lastRawResult)"></div>
+            </details>
+        </template>
     </div>
 </section>

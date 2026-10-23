@@ -8,6 +8,7 @@
  */
 window.diceFeature = function() {
     return {
+        MODAL_DISMISS_MS: 30000,
         diceNotation: '1d20',
         diceMessage: '',
         rollMode: 'public',
@@ -16,6 +17,7 @@ window.diceFeature = function() {
 
         showResultModal: false,
         lastResult: null,
+        lastRawResult: null,
 
         _publicRollTimeout: null,
         _dmModalTimer: null,
@@ -105,11 +107,20 @@ window.diceFeature = function() {
                 if (typeof DICE !== 'undefined' && typeof DICE.rollSilent === 'function') {
                     result = await DICE.rollSilent(notation);
                 } else {
+                    WARN('DICE.rollSilent unavailable — using legacy fallback parser');
                     result = this._fallbackRoll(notation);
                 }
             } catch (err) {
                 WARN('rollSilent rejected:', err);
-                result = err && err.error ? err : this._fallbackRoll(notation);
+                // Library rejections always carry error:true (via p()).
+                // Anything else is a genuine bug — log it before falling back
+                // so it isn't masked by the simpler parser.
+                if (err && err.error) {
+                    result = err;
+                } else {
+                    WARN('Unexpected rollSilent failure — falling back to legacy parser');
+                    result = this._fallbackRoll(notation);
+                }
             }
 
             this.diceRolling = false;
@@ -127,7 +138,12 @@ window.diceFeature = function() {
                     tag: 'Private Roll',
                 }
             );
+            this.lastRawResult = result;
             this.showResultModal = true;
+            clearTimeout(this._dmModalTimer);
+            this._dmModalTimer = setTimeout(() => {
+                this.showResultModal = false;
+            }, this.MODAL_DISMISS_MS);
 
             this.addToHistory({
                 id:       uuid(),
@@ -141,7 +157,7 @@ window.diceFeature = function() {
                 fail:     this.lastResult.fail,
             });
             this.diceMessage = '';
-            LOG(`🔒 Private roll: ${notation} = ${this.lastResult.total}`);
+            LOG(`Private roll: ${notation} = ${this.lastResult.total}`);
         },
 
         /* ---------- PUBLIC ROLL (hands off to player) ---------- */
@@ -167,16 +183,26 @@ window.diceFeature = function() {
         },
 
         onPublicResult(data) {
-            LOG('📩 onPublicResult called with:', data);
+            LOG('onPublicResult called with:', data);
             clearTimeout(this._publicRollTimeout);
             this.diceRolling = false;
 
-            this.lastResult = normalizeDiceResult(data, {
-                notation: data?.notation,
+            // New player sends { notation, message, tag, raw: <library result> }.
+            // Older / fallback payloads are flat ({ total, breakdown, ... }) —
+            // shim them into the library field names so normalization works.
+            const raw = data?.raw || {
+                ...data,
+                resultTotal:  data?.total,
+                resultString: data?.breakdown,
+            };
+
+            this.lastResult = normalizeDiceResult(raw, {
+                notation: data?.notation ?? raw?.notation,
                 rollMode: 'public',
                 message:  data?.message,
                 tag:      data?.tag || 'Roll',
             });
+            this.lastRawResult = raw;
             this.showResultModal = true;
 
             this.addToHistory({
@@ -193,7 +219,9 @@ window.diceFeature = function() {
 
             LOG('DM modal opened with:', this.lastResult);
             clearTimeout(this._dmModalTimer);
-            this._dmModalTimer = setTimeout(() => { this.showResultModal = false; }, 3500);
+            this._dmModalTimer = setTimeout(() => {
+                this.showResultModal = false;
+            }, this.MODAL_DISMISS_MS);
         },
 
         /* ---------- FALLBACK ---------- */
