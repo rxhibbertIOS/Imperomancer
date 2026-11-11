@@ -84,6 +84,7 @@
                     aria-hidden="true"
                     x-html="shapeLayerMarkup()">
                 </svg>
+                <div class="shape-tooltip player-shape-tooltip" x-show="tableShapePreview" x-text="tableShapePreview ? shapeDistanceLabel(tableShapePreview) : ''"></div>
                 
                 <div class="status-overlay"
                     x-show="statusVisible"

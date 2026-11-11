@@ -48,7 +48,8 @@ function gridFeature() {
         // ---- Internal ----
         _gridCanvas: null,
         _gridCtx: null,
-        _gridRaf: null,
+        _gridDrawRaf: null,
+        _gridSaveTimer: null,
 
         initGrid() {
             this.loadGridSettings();
@@ -75,28 +76,13 @@ function gridFeature() {
             });
 
             this.$watch('gridVisible', (v) => {
-                if (v) this.startGridLoop();
                 this.drawGrid();
             });
 
             window.addEventListener('resize', redraw);
+            this._gridBeforeUnload = () => this.flushGridSettings();
+            window.addEventListener('beforeunload', this._gridBeforeUnload);
 
-            // Continuously redraw while the grid is visible — cheap enough,
-            // and it sidesteps every "did state finish applying?" race.
-            this.startGridLoop();
-        },
-
-        startGridLoop() {
-            if (this._gridRaf) return;
-            const loop = () => {
-                if (!this.gridVisible) {
-                    this._gridRaf = null;
-                    return;
-                }
-                this.drawGrid();
-                this._gridRaf = requestAnimationFrame(loop);
-            };
-            this._gridRaf = requestAnimationFrame(loop);
         },
 
         // ============================================================
@@ -116,6 +102,13 @@ function gridFeature() {
         },
 
         saveGridSettings() {
+            clearTimeout(this._gridSaveTimer);
+            this._gridSaveTimer = setTimeout(() => this.flushGridSettings(), 180);
+        },
+
+        flushGridSettings() {
+            clearTimeout(this._gridSaveTimer);
+            this._gridSaveTimer = null;
             localStorage.setItem('dm.grid', JSON.stringify({
                 gridType: this.gridType,
                 gridShowLabels: this.gridShowLabels,
@@ -275,6 +268,15 @@ function gridFeature() {
             return isFinite(sw) && sw > 0;
         },
 
+        lockUnavailableReason() {
+            const { nw } = this.naturalSize?.() || { nw: 0 };
+            if (!nw) return 'Add a scene image or video first so Imperomancer can determine the map size.';
+            if (!this.scenePxPerCell || this.scenePxPerCell < 2) return 'Set a valid grid cell size (at least 2 pixels per cell).';
+            if (!this.playerStageW) return 'Connect the player display, then wait for its table dimensions to arrive.';
+            if (!this.effectivePpi() || this.effectivePpi() <= 0) return 'Complete table-display calibration so the physical pixel density is known.';
+            return 'Grid lock is temporarily unavailable. Check the scene and player display connection.';
+        },
+
         enterLock() {
             const sw = this.lockedSceneW();
             if (!isFinite(sw) || sw <= 0) {
@@ -360,6 +362,14 @@ function gridFeature() {
         },
 
         drawGrid() {
+            if (this._gridDrawRaf) return;
+            this._gridDrawRaf = requestAnimationFrame(() => {
+                this._gridDrawRaf = null;
+                this._drawGridNow();
+            });
+        },
+
+        _drawGridNow() {
             const canvas = this.getGridCanvas();
             if (!canvas) return;
 
@@ -630,7 +640,6 @@ function gridFeature() {
 
         onGridVisibleChange() {
             this.saveGridSettings();
-            if (this.gridVisible) this.startGridLoop();
             this.drawGrid();
             if (window.syncState) window.syncState(this.$data);
         },

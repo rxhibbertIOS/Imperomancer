@@ -4,6 +4,7 @@ window.sceneFeature = function() {
         mediaType: 'image',
         pendingImage: null,
         pendingMediaType: null,
+        sceneUploadError: '',
         sceneMediaSource: '',
         transition: 'none',
         publishTransition: 'cut',
@@ -33,12 +34,23 @@ window.sceneFeature = function() {
         handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
+            this.sceneUploadError = '';
+            const allowed = file.type.startsWith('image/') || file.type.startsWith('video/');
             const isVideo = file.type.startsWith('video/');
+            const maxBytes = (isVideo ? 50 : 25) * 1024 * 1024;
+            if (!allowed || file.size > maxBytes) {
+                this.pendingImage = null;
+                this.pendingMediaType = null;
+                this.sceneUploadError = !allowed ? 'Choose an image or video file.' : `That ${isVideo ? 'video' : 'image'} is larger than ${isVideo ? 50 : 25} MB. Use a smaller or compressed file.`;
+                event.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
             reader.onload = (e) => {
                 this.pendingImage = e.target.result;
                 this.pendingMediaType = isVideo ? 'video' : 'image';
             };
+            reader.onerror = () => { this.sceneUploadError = 'The selected file could not be read.'; };
             reader.readAsDataURL(file);
         },
 
@@ -62,6 +74,7 @@ window.sceneFeature = function() {
                 'currentImage', 'mediaType', 'view', 'gridVisible', 'gridType',
                 'gridShowLabels', 'gridLabelEvery', 'gridOpacity', 'scenePxPerCell',
                 'sceneGridOriginX', 'sceneGridOriginY', 'locked',
+                'effects',
             ].forEach(property => {
                 this.$watch(property, () => this.saveSelectedScene(true));
             });
@@ -90,6 +103,7 @@ window.sceneFeature = function() {
                 sceneGridOriginX: this.sceneGridOriginX,
                 sceneGridOriginY: this.sceneGridOriginY,
                 locked: this.locked,
+                effects: this.effects || [],
             };
         },
 
@@ -222,7 +236,7 @@ window.sceneFeature = function() {
             const {
                 currentImage, mediaType, sceneMediaSource, view, gridVisible, gridType,
                 gridShowLabels, gridLabelEvery, gridOpacity, scenePxPerCell,
-                sceneGridOriginX, sceneGridOriginY, locked,
+                sceneGridOriginX, sceneGridOriginY, locked, effects,
             } = scene;
             return {
                 currentImage: currentImage ?? null,
@@ -238,11 +252,13 @@ window.sceneFeature = function() {
                 sceneGridOriginX: sceneGridOriginX ?? 0,
                 sceneGridOriginY: sceneGridOriginY ?? 0,
                 locked: locked === true,
+                effects: effects || [],
             };
         },
 
         selectScene(id) {
             if (id === this.selectedSceneId) return;
+            this.flushGridSettings?.();
             this.saveSelectedScene();
             this.selectedSceneId = id;
             this.restoreSelectedScene();
@@ -613,6 +629,7 @@ window.sceneFeature = function() {
 
             this.view = { ...this.view, cx, cy };
             this.clampView();
+            this.drawGrid?.();
             this._throttledSync();
         },
 

@@ -8,6 +8,7 @@
     pointer-events: none;
     z-index: 5;
 }
+.stage-inner.effect-select-mode .shape-overlay { pointer-events: auto; cursor: pointer; }
 
 .shape-stroke {
     fill: none;
@@ -18,8 +19,12 @@
     filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.7));
 }
 
+.shape-fill { fill: rgba(255, 209, 102, 0.16); }
+.measurement-stroke { stroke: #70d6ff; stroke-dasharray: 8 5; filter: drop-shadow(0 0 5px rgba(112,214,255,.7)); }
+.shape-guide { stroke: rgba(255,255,255,.75); stroke-width: 1.5; stroke-dasharray: 4 4; pointer-events: none; }
+
 .flash-shape {
-    animation: shape-flash-fade 2s ease-out forwards;
+    animation: shape-flash-fade 4s ease-out forwards;
 }
 
 @keyframes shape-flash-fade {
@@ -57,6 +62,8 @@
     margin-bottom: 6px;
     padding: 0 4px;
 }
+.shape-menu-toggle { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:5px 4px; font-size:11px; color:var(--text-2, #bbb); cursor:pointer; }
+.shape-menu-toggle input { accent-color:var(--gold, #ffd166); }
 
 .shape-menu-grid {
     display: grid;
@@ -105,3 +112,15 @@
     pointer-events: none;
     font-variant-numeric: tabular-nums;
 }
+.shape-tooltip button { margin-left: 8px; padding: 1px 5px; border: 0; border-radius: 3px; background: rgba(255,255,255,.14); color: inherit; font: inherit; cursor: pointer; }
+.player-shape-tooltip { left: 16px; top: 16px; z-index: 20; }
+.effect-label, .effect-status text { fill: #fff; font: 700 12px system-ui, sans-serif; paint-order: stroke; stroke: rgba(0,0,0,.8); stroke-width: 3px; text-anchor: middle; }
+.effect-status circle { stroke: #fff; stroke-width: 2px; fill: #d65c5c; }
+
+.effect-layer-list { display: grid; gap: 4px; margin-top: 10px; max-height: 160px; overflow: auto; }
+.effect-layer { display: flex; align-items: center; gap: 4px; width: 100%; padding: 4px; border: 1px solid var(--border, #333); border-radius: 5px; background: rgba(255,255,255,.03); color: var(--text, #fff); }
+.effect-layer.selected { border-color: var(--gold, #ffd166); }
+.effect-swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.effect-layer-main { display:flex; align-items:center; gap:7px; min-width:0; flex:1; border:0; background:transparent; color:inherit; text-align:left; cursor:pointer; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.effect-layer-action { width:24px; height:24px; border:0; border-radius:4px; background:transparent; color:var(--text-3); cursor:pointer; }
+.effect-layer-action:hover { background:rgba(255,255,255,.1); color:var(--text); }.effect-layer-action.danger:hover { color:#ff7a7a; }

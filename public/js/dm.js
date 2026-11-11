@@ -95,7 +95,9 @@ function dmApp() {
                 }
             };
 
-            setInterval(() => sync(this.$data), 1000);
+            this._stateSyncTimer = setInterval(() => {
+                if (this.isLive || this.isConnecting) sync(this.$data);
+            }, 1000);
             setTimeout(() => sync(this.$data), 500);
 
             this.$watch('showResultModal', (open) => {
@@ -109,6 +111,12 @@ function dmApp() {
 
         destroy() {
             this.shortcuts?.detach();
+            clearInterval(this._stateSyncTimer);
+            clearInterval(this._playerHeartbeatTimer);
+            clearTimeout(this._playerConnectTimer);
+            this._stageRO?.disconnect();
+            if (this._gridBeforeUnload) window.removeEventListener('beforeunload', this._gridBeforeUnload);
+            clearTimeout(this._shapeLongPressTimer);
         },
 
         // --- dialog state (used by shortcuts to gate non-Escape keys) ---

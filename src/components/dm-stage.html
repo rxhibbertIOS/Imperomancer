@@ -6,16 +6,19 @@
         aria-hidden="true"
         x-show="currentImage && mediaType === 'image' && !isAnimating">
     <div class="stage-inner"
-        :class="{ locked, 'focus-mode': focusMode, 'shape-mode': !!pendingShapeKind }"
+        :class="{ locked, 'focus-mode': focusMode, 'shape-mode': !!pendingShapeKind, 'effect-select-mode': effectSelectMode }"
         :style="stageInnerStyle()"
         data-stage-inner
         @mousedown="handleStageMouseDown($event)"
-        @mousemove="pan($event)"
-        @mouseup="endPan()"
-        @mouseleave="endPan()"
+        @mousemove="handleStageMouseMove($event)"
+        @mouseup="handleStageMouseUp($event)"
+        @mouseleave="handleStageMouseUp($event)"
         @wheel="onWheel($event)"
         @click="handleFocusClick($event)"
-        @contextmenu.prevent="focusMode ? (focusMode = false) : null">
+        @touchstart.passive="beginShapeLongPress($event)"
+        @touchend="endShapeLongPress()"
+        @touchmove="endShapeLongPress()"
+        @contextmenu.prevent="handleStageContextMenu($event)">
         <div class="scene" :class="{ 'dice-active': diceRolling || showResultModal }">
             <div class="dice-backdrop" aria-hidden="true"></div>
 
@@ -98,6 +101,7 @@
                     :width="stageSize().W"
                     :height="stageSize().H"
                     aria-hidden="true"
+                    @click.stop="selectEffectAt($event)"
                     x-html="shapeLayerMarkup()">
                 </svg>
                 
@@ -134,25 +138,33 @@
             role="menu"
             aria-label="Draw shape">
             <div class="shape-menu-title">Draw</div>
+            <label class="shape-menu-toggle"><input type="checkbox" x-model="effectDraft.persistent"><span>Keep layer</span></label>
+            <label class="shape-menu-toggle"><input type="checkbox" :checked="effectDraft.visibility === 'public'" @change="effectDraft.visibility = $event.target.checked ? 'public' : 'private'"><span>Show on table</span></label>
             <div class="shape-menu-grid">
+                <button type="button" role="menuitem" @click="pickShapeKind('measure')" title="Measure only — DM display" aria-label="Measure distance only">
+                    <span aria-hidden="true">↔</span>
+                </button>
                 <button type="button" role="menuitem" @click="pickShapeKind('line')" title="Line" aria-label="Line">
                     <span aria-hidden="true">╱</span>
                 </button>
-                <button type="button" role="menuitem" disabled title="Circle (coming soon)" aria-label="Circle">
+                <button type="button" role="menuitem" @click="pickShapeKind('circle')" title="Circle" aria-label="Circle">
                     <span aria-hidden="true">○</span>
                 </button>
-                <button type="button" role="menuitem" disabled title="Square (coming soon)" aria-label="Square">
+                <button type="button" role="menuitem" @click="pickShapeKind('square')" title="Square" aria-label="Square">
                     <span aria-hidden="true">□</span>
                 </button>
-                <button type="button" role="menuitem" disabled title="Cone (coming soon)" aria-label="Cone">
+                <button type="button" role="menuitem" @click="pickShapeKind('cone')" title="Cone" aria-label="Cone">
                     <span aria-hidden="true">◭</span>
                 </button>
             </div>
-            <div class="shape-tooltip"
-                x-show="dragShape"
-                x-transition.opacity.duration.100ms
-                :style="tooltipStyle()"
-                x-text="dragShape ? shapeDistanceLabel(dragShape) : ''"></div>
+            <div class="shape-menu-title">Status</div>
+            <div class="shape-menu-grid">
+                <button type="button" role="menuitem" @click="dropStatusEffect('Poisoned')" title="Poisoned" aria-label="Poisoned">☠</button>
+                <button type="button" role="menuitem" @click="dropStatusEffect('Stunned')" title="Stunned" aria-label="Stunned">✦</button>
+                <button type="button" role="menuitem" @click="dropStatusEffect('Prone')" title="Prone" aria-label="Prone">↯</button>
+                <button type="button" role="menuitem" @click="dropStatusEffect('Marked')" title="Marked" aria-label="Marked">●</button>
+            </div>
         </div>
+        <div class="shape-tooltip" x-show="dragShape" x-transition.opacity.duration.100ms :style="tooltipStyle()"><span x-text="dragShape ? shapeDistanceLabel(dragShape) : ''"></span><button type="button" @click="cancelShapeDrag()" aria-label="Cancel drawing">Cancel</button></div>
     </div>
 </main>

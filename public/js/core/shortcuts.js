@@ -47,6 +47,7 @@
     'alt+f': { group: 'Display', description: 'Toggle fullscreen',   action: 'toggleFullscreen' },
     'alt+k': { group: 'Display', description: 'Toggle zoom lock', action: 'toggleLockShortcut' },
     'alt+p': { group: 'Display', description: 'Toggle focus pointer', action: 'toggleFocusMode', when: () => window.MODE === 'dm' },
+    'alt+e': { group: 'Display', description: 'Open effects palette', action: 'openEffectsPalette', when: () => window.MODE === 'dm' },
 
     // Help
     '?':      { group: 'Help', description: 'Show keyboard shortcuts', action: 'openShortcutGlossary' },

@@ -81,7 +81,9 @@ window.pickSyncState = function(data, opts = {}) {
         tableCorrection:     data.tableCorrection ?? 1,
         showCalibrationSquare: data.showCalibrationSquare === true,
         focusPings: data.focusPings ?? [],
+        effects: (data.effects || []).filter(effect => effect.visibility !== 'private'),
         flashShapes: (data.flashShapes || []).filter(s => s.visibility !== 'private'),
+        shapePreview: data.dragShape && data.effectDraft?.visibility !== 'private' ? data.dragShape : null,
         isLive: true,
     };
 
@@ -94,10 +96,14 @@ window.pickSyncState = function(data, opts = {}) {
 
 window.defaultState = window.pickSyncState({});
 
+let stateRevision = 0;
+
 window.syncState = function(state, opts) {
+    const payload = window.pickSyncState(state, opts);
+    payload.revision = ++stateRevision;
     window.channel.postMessage({
         type: 'sync',
-        state: window.clone(window.pickSyncState(state, opts)),
+        state: window.clone(payload),
     });
 };
 
@@ -150,14 +156,16 @@ window.resetViewSync = function() {
 // Publish the selected scene and its display settings to the player.
 window.broadcastScene = function(state, scene, transition = 'none') {
     window.resetViewSync();
+    const payload = window.pickSyncState(state, {
+        includeScene: true,
+        scene,
+        transition,
+        scenePublished: true,
+    });
+    payload.revision = ++stateRevision;
     window.channel.postMessage({
         type: 'sync',
-        state: window.clone(window.pickSyncState(state, {
-            includeScene: true,
-            scene,
-            transition,
-            scenePublished: true,
-        })),
+        state: window.clone(payload),
     });
 };
 

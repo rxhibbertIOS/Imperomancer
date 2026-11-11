@@ -33,6 +33,7 @@ function playerApp() {
         _viewPortReady: false,
         _viewPortManualDisconnect: false,
         _lastViewPingAt: 0,
+        _lastStateRevision: 0,
 
         init() {
             if (window.MODE !== 'player') {
@@ -69,8 +70,11 @@ function playerApp() {
 
                 // And re-fire whenever the stage size actually changes
                 if (typeof ResizeObserver !== 'undefined') {
-                    new ResizeObserver(publish).observe(stage);
+                    this._displayResizeObserver?.disconnect();
+                    this._displayResizeObserver = new ResizeObserver(publish);
+                    this._displayResizeObserver.observe(stage);
                 } else {
+                    this._displayResizeFallback = publish;
                     window.addEventListener('resize', publish);
                 }
             });
@@ -137,6 +141,14 @@ function playerApp() {
             window.viewPort = null;
         },
 
+        destroy() {
+            this.stopViewPortConnection();
+            this._displayResizeObserver?.disconnect();
+            if (this._displayResizeFallback) window.removeEventListener('resize', this._displayResizeFallback);
+            if (this._viewAnimationRaf !== null) cancelAnimationFrame(this._viewAnimationRaf);
+            clearTimeout(this._shapeLongPressTimer);
+        },
+
         handleViewPacket(message, transport) {
             if (message?.type !== 'view') return;
             this._queueView(message.view);
@@ -144,6 +156,8 @@ function playerApp() {
         },
 
         _onSync(s) {
+            if (Number.isFinite(s?.revision) && s.revision < this._lastStateRevision) return;
+            if (Number.isFinite(s?.revision)) this._lastStateRevision = s.revision;
             const prevTurn = this.currentTurn;
 
             if (Object.prototype.hasOwnProperty.call(s, 'currentImage')) {
@@ -184,7 +198,9 @@ function playerApp() {
             this.sceneGridOriginX = s.sceneGridOriginX ?? 0;
             this.sceneGridOriginY = s.sceneGridOriginY ?? 0;
             this.focusPings = s.focusPings || [];
+            this.effects = s.effects || [];
             this.flashShapes = s.flashShapes || [];
+            this.tableShapePreview = s.shapePreview || null;
             this.locked = s.locked === true;
 
             if (typeof s.tablePpi === 'number') this.tablePpi = s.tablePpi;
@@ -210,6 +226,7 @@ function playerApp() {
         _onView(view) {
             if (!view || typeof view.sceneW !== 'number') return;
             this.view = { cx: view.cx, cy: view.cy, sceneW: view.sceneW };
+            this.drawGrid?.();
         },
 
         _queueView(view) {

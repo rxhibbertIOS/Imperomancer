@@ -45,7 +45,7 @@
                         x-text="t.label"></button>
             </template>
         </div>
-        <label class="switch-row" :class="{ disabled: !canLock() }">
+        <label class="switch-row" :class="{ disabled: !canLock() }" :title="canLock() ? '' : lockUnavailableReason()">
             <input type="checkbox" role="switch"
                 x-model="locked"
                 @change="toggleLock()"
@@ -53,7 +53,7 @@
             <span>Lock to 1&Prime; cells</span>
         </label>
         <div class="field-hint" x-show="!canLock()">
-            Set a scene px/cell value first.
+            <span x-text="lockUnavailableReason()"></span>
         </div>
         <div class="field-hint" x-show="locked && canLock()">
             Locked at <b x-text="zoomPercent() + '%'"></b> —
@@ -233,6 +233,37 @@
                     Used for measuring distances on the table — currently
                     <b x-text="unitSummary()"></b>.
                 </p>
+            </div>
+        </details>
+
+        <details class="grid-calibration" :open="effects.length > 0">
+            <summary>Effect defaults & layers</summary>
+            <div class="grid-calibration-body">
+                <label class="field-label">Colour</label>
+                <input type="color" x-model="effectDraft.color" aria-label="Effect colour">
+                <label class="field-label">Opacity <span x-text="Math.round(effectDraft.opacity * 100) + '%' "></span></label>
+                <input type="range" min="0.05" max="1" step="0.05" class="grid-slider" x-model.number="effectDraft.opacity">
+                <input type="text" class="field-input" x-model="effectDraft.label" maxlength="48" placeholder="Optional effect label" aria-label="Effect label">
+                <label class="switch-row"><input type="checkbox" x-model="effectDraft.persistent"><span>Keep as layer</span></label>
+                <label class="switch-row"><input type="checkbox" :checked="effectDraft.visibility === 'public'" @change="effectDraft.visibility = $event.target.checked ? 'public' : 'private'"><span>Visible on table</span></label>
+                <template x-if="effects.length">
+                    <div class="effect-layer-list" aria-label="Effect layers">
+                        <template x-for="effect in effects" :key="effect.id">
+                            <div class="effect-layer" :class="{ selected: selectedEffectId === effect.id }">
+                                <button type="button" class="effect-layer-main" @click="selectEffect(effect.id)"><span class="effect-swatch" :style="{ backgroundColor: effect.color }"></span><span x-text="effect.label || effect.geometry.kind"></span></button>
+                                <button type="button" class="effect-layer-action" @click="toggleEffectVisibility(effect.id)" :title="effect.visibility === 'public' ? 'Hide from table' : 'Show on table'" :aria-label="effect.visibility === 'public' ? 'Hide from table' : 'Show on table'" x-text="effect.visibility === 'public' ? '◉' : '○'"></button>
+                                <button type="button" class="effect-layer-action" @click="focusEffect(effect.id)" title="Focus map on effect" aria-label="Focus map on effect">⌖</button>
+                                <button type="button" class="effect-layer-action danger" @click="selectedEffectId = effect.id; deleteSelectedEffect()" title="Delete effect" aria-label="Delete effect">×</button>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <div class="grid-field-row" x-show="effects.length">
+                    <button type="button" class="btn btn-ghost btn-sm" :aria-pressed="effectSelectMode" @click="toggleEffectSelectMode()" x-text="effectSelectMode ? 'Selecting on map…' : 'Select on map'"></button>
+                    <button type="button" class="btn btn-ghost btn-sm" x-show="selectedEffectId" @click="updateSelectedEffect()">Update layer</button>
+                    <button type="button" class="btn btn-ghost btn-sm" x-show="selectedEffectId" @click="deleteSelectedEffect()">Delete</button>
+                </div>
+                <a class="field-hint" href="../EFFECTS_GUIDE.md" target="_blank" rel="noopener">Open the grid effects guide</a>
             </div>
         </details>
 
