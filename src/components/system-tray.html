@@ -1,0 +1,35 @@
+<!-- Docked sidebar card. The latest event substitutes for a conventional card body. -->
+<section class="card system-log" data-system-tray aria-labelledby="chronicle-title">
+    <header class="card-head">
+        <h3 id="chronicle-title" class="card-title">
+            <span class="card-toggle system-log__title">
+                <img class="app-icon" src="../assets/icons/book.svg" alt="" aria-hidden="true">
+                <span>Chronicle</span>
+            </span>
+        </h3>
+        <span class="card-head-right">
+            <span class="chip chip-muted system-log__count" data-system-log-count aria-label="0 log entries">
+                <span>0</span>
+            </span>
+            <button class="system-log__toggle" type="button" data-system-log-toggle aria-expanded="false" aria-controls="systemLogPanel" aria-label="Expand Chronicle">
+                <img class="app-icon system-log__expand-icon" src="../assets/icons/expand.svg" alt="" aria-hidden="true">
+                <img class="app-icon system-log__collapse-icon" src="../assets/icons/collapse.svg" alt="" aria-hidden="true">
+                <span class="sr-only">Toggle Chronicle</span>
+            </button>
+        </span>
+    </header>
+    <div class="system-log__summary" data-system-log-summary aria-live="polite" aria-atomic="true">
+        <p class="system-log__placeholder">No system activity yet.</p>
+    </div>
+    <div class="system-log__panel" id="systemLogPanel">
+        <header class="system-log__header">
+            <h2>Chronicle</h2>
+            <span class="system-log__header-actions">
+                <button type="button" class="system-log__header-button" data-system-log-clear aria-label="Clear Chronicle" title="Clear Chronicle"><img class="app-icon" src="../assets/icons/bin.svg" alt="" aria-hidden="true"></button>
+                <button type="button" class="system-log__header-button" data-system-log-toggle aria-expanded="true" aria-controls="systemLogPanel" aria-label="Collapse Chronicle" title="Collapse Chronicle"><img class="app-icon" src="../assets/icons/collapse.svg" alt="" aria-hidden="true"></button>
+            </span>
+        </header>
+        <div class="system-log__controls"><div class="system-log__filters" data-system-log-filters aria-label="Filter by level"><button type="button" class="is-active" data-log-level="all">All</button><button type="button" data-log-level="debug">Debug</button><button type="button" data-log-level="info">Info</button><button type="button" data-log-level="success">Success</button><button type="button" data-log-level="warn">Warn</button><button type="button" data-log-level="danger">Danger</button><button type="button" data-log-level="error">Error</button></div><label class="sr-only" for="systemLogFeature">Filter by feature</label><input id="systemLogFeature" type="search" data-system-log-feature placeholder="Filter feature"></div>
+        <div class="system-log__entries" data-system-log-list aria-live="polite"></div>
+    </div>
+</section>

@@ -200,12 +200,12 @@ window.sceneFeature = function() {
                         Promise.resolve(video.play()).then(
                             () => this.waitForVideoFrame(video).then(() => finish(true)),
                             error => {
-                                if (error.name !== 'AbortError') WARN('Scene video playback failed:', error);
+                                if (error.name !== 'AbortError') systemLog.warn('scene', 'playVideo', 'Scene video playback failed', error.stack);
                                 finish(false);
                             }
                         );
                     } catch (error) {
-                        if (error.name !== 'AbortError') WARN('Scene video playback failed:', error);
+                        if (error.name !== 'AbortError') systemLog.warn('scene', 'playVideo', 'Scene video playback failed', error.stack);
                         finish(false);
                     }
                 };
@@ -273,6 +273,7 @@ window.sceneFeature = function() {
             this.saveSelectedScene();
             this.selectedSceneId = id;
             this.restoreSelectedScene();
+            systemLog.info('scene', 'select', 'Scene selected');
         },
 
         createScene() {
@@ -292,6 +293,7 @@ window.sceneFeature = function() {
             this.scenes = [...this.scenes, scene];
             this.selectedSceneId = id;
             this.restoreSelectedScene();
+            systemLog.success('scene', 'create', `Created ${scene.name}`);
         },
 
         renameSelectedScene() {
@@ -316,6 +318,7 @@ window.sceneFeature = function() {
             this.scenes = this.scenes.filter(scene => scene.id !== this.selectedSceneId);
             this.selectedSceneId = nextScene.id;
             this.restoreSelectedScene();
+            systemLog.danger('scene', 'delete', 'Scene deleted');
         },
 
         clearScene() {
@@ -345,6 +348,7 @@ window.sceneFeature = function() {
             if (window.broadcastScene) {
                 window.broadcastScene(this.$data, this.publishedScene, transition);
             }
+            systemLog.success('scene', 'publish', `Published ${selected.name}`);
         },
 
         applyImage() {

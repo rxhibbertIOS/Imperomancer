@@ -96,7 +96,7 @@ window.initiativeFeature = function({ editable = false } = {}) {
                     d20 = window.roll(20);
                 }
             } catch (err) {
-                WARN('Initiative roll failed, falling back to Math.random:', err);
+                systemLog.warn('initiative', 'roll', 'Initiative roll failed; using fallback', err.stack);
                 d20 = Math.floor(Math.random() * 20) + 1;
             }
             return d20 + (bonus || 0);
@@ -144,8 +144,7 @@ window.initiativeFeature = function({ editable = false } = {}) {
             }
             this.showInitiative = true;
             sync(this.$data);
-            LOG('▶ Initiative order:',
-                combatants.map(c => `${c.name}(${c.initiative})`).join(' → '));
+            systemLog.success('initiative', 'start', `Initiative order set for ${combatants.length} combatants`);
         },
 
         exitInitiative() {
@@ -156,7 +155,7 @@ window.initiativeFeature = function({ editable = false } = {}) {
             this.currentTurn = 0;
             this.round = 1;
             sync(this.$data);
-            LOG('⏸ Initiative ended');
+            systemLog.info('initiative', 'end', 'Initiative ended');
         },
 
         startInitiativeEdit() {
@@ -175,7 +174,7 @@ window.initiativeFeature = function({ editable = false } = {}) {
             }
             this.initiativeEditing = true;
             sync(this.$data);
-            LOG('✎ Entered initiative edit mode');
+            systemLog.info('initiative', 'edit', 'Initiative edit mode enabled');
         },
 
         cancelInitiativeEdit() {
@@ -183,7 +182,7 @@ window.initiativeFeature = function({ editable = false } = {}) {
             this.initiativeEditing = false;
             this.initiativeRows = [];
             sync(this.$data);
-            LOG('✕ Initiative edit cancelled');
+            systemLog.info('initiative', 'edit', 'Initiative edit cancelled');
         },
 
         async saveInitiativeEdit() {
@@ -227,8 +226,7 @@ window.initiativeFeature = function({ editable = false } = {}) {
             this.initiativeEditing = false;
             this.initiativeRolling = false;
             sync(this.$data);
-            LOG('🔄 Initiative updated —',
-                combatants.map(c => `${c.name}(${c.initiative})`).join(' → '));
+            systemLog.success('initiative', 'update', `Initiative updated for ${combatants.length} combatants`);
         },
 
         toggleDead(id) {

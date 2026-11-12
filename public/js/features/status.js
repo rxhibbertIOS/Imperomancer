@@ -12,11 +12,13 @@ window.statusFeature = function() {
             if (!msg) return;
             channel.postMessage({ type: 'status', message: msg });
             this.showStatus(msg);
+            systemLog.info('status', 'send', 'Status message sent');
         },
 
         clearStatus() {
             channel.postMessage({ type: 'status', message: '' });
             this.hideStatus();
+            systemLog.info('status', 'clear', 'Status message cleared');
         },
 
         focusEffect(effect) {

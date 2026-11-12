@@ -39,10 +39,10 @@ function playerApp() {
 
         init() {
             if (window.MODE !== 'player') {
-                LOG('⏭️ playerApp skipped (mode = ' + window.MODE + ')');
+                systemLog.debug('app', 'initialise', `Player app skipped for ${window.MODE} mode`);
                 return;
             }
-            LOG('✅ Player App initializing…');
+            systemLog.success('app', 'initialise', 'Player app initialised');
 
             this.connectViewPort();
             this.$nextTick(() => this.initDiceBox());
@@ -88,7 +88,7 @@ function playerApp() {
                 switch (d.type) {
                     case 'sync':      this._onSync(d.state); break;
                     case 'view':      this.handleViewPacket(d, channel); break;
-                    case 'publicRoll': LOG('🔊 Public roll received:', d); this.triggerPublicRoll(d); break;
+                    case 'publicRoll': systemLog.info('dice', 'receiveRoll', 'Public roll received'); this.triggerPublicRoll(d); break;
                     case 'status':    this.showStatus(d.message); break;
                     case 'focus':     this.showFocus(d.effect); break;
                 }
@@ -290,7 +290,7 @@ function playerApp() {
 
         handleSceneTransition(transition) {
             if (!this.currentImage) return;
-            LOG('✨ Applying scene transition on player:', transition);
+            systemLog.info('scene', 'transition', `Applying ${transition} transition`);
 
             const el = this.$root?.querySelector(this.mediaType === 'video'
                 ? '.scene video'
@@ -310,8 +310,8 @@ function playerApp() {
             diceInitAttempted = true;
 
             const container = document.getElementById('playerDiceContainer');
-            if (!container) { WARN('Player dice container missing'); return; }
-            if (typeof DICE === 'undefined') { WARN('DICE library missing'); return; }
+            if (!container) { systemLog.warn('dice', 'initialise', 'Player dice container is missing'); return; }
+            if (typeof DICE === 'undefined') { systemLog.error('dice', 'initialise', 'DICE library is missing'); return; }
 
             if (DICE.dice_box && DICE.dice_box.prototype) {
                 DICE.dice_box.prototype.playSound = function() {};
@@ -340,17 +340,17 @@ function playerApp() {
                     diceBox._deskDiceContact.restitution = 0.3;
                 }
 
-                LOG('✅ Player dice box ready');
+                systemLog.success('dice', 'initialise', 'Player dice box ready');
             } catch (err) {
-                ERR('Player dice box init failed:', err);
+                systemLog.error('dice', 'initialise', 'Player dice box initialisation failed', err.stack);
                 diceBox = null;
             }
         },
 
         async triggerPublicRoll({ notation, message, tag }) {
-            LOG('🎲 triggerPublicRoll:', notation, { message, tag });
+            systemLog.info('dice', 'roll', `Starting public ${notation} roll`);
 
-            if (this.diceRolling) { WARN('Already rolling'); return; }
+            if (this.diceRolling) { systemLog.warn('dice', 'roll', 'Ignored public roll while another roll is active'); return; }
 
             this.pendingRoll = {
                 notation,
@@ -375,16 +375,16 @@ function playerApp() {
                     diceBox.start_throw(),
                     new Promise(resolve => {
                         playerRollTimer = setTimeout(() => {
-                            WARN('Player roll timed out — using fallback');
+                            systemLog.warn('dice', 'roll', 'Player roll timed out; using fallback');
                             resolve(null);
                         }, 25000);
                     }),
                 ]);
                 clearTimeout(playerRollTimer);
-                LOG('🎲 start_throw resolved:', result);
+                systemLog.debug('dice', 'roll', 'Dice animation resolved');
 
                 if (!result || result.error) {
-                    WARN('Dice roll returned an error or timed out – using fallback');
+                    systemLog.warn('dice', 'roll', 'Dice roll failed or timed out; using fallback');
                     this.diceRolling = false;
                     this._broadcastResult(this._fallbackResult(notation));
                     return;
@@ -403,7 +403,7 @@ function playerApp() {
                 });
             } catch (err) {
                 clearTimeout(playerRollTimer);
-                ERR('start_throw threw:', err);
+                systemLog.error('dice', 'roll', 'Dice animation threw an error', err.stack);
                 this.diceRolling = false;
                 this._broadcastResult(this._fallbackResult(notation));
             }
@@ -411,7 +411,11 @@ function playerApp() {
 
         _broadcastResult(payload) {
             channel.postMessage({ type: 'publicRollResult', ...payload });
-            LOG('📤 Result sent to DM:', payload);
+            systemLog.success('dice', 'sendResult', formatDiceLog(
+                payload.notation,
+                payload.message,
+                payload.raw?.resultTotal
+            ));
 
             // Player-side 2.5s toast reads flattened fields for convenience.
             const raw = payload.raw || {};
@@ -476,4 +480,4 @@ function playerApp() {
 }
 
 window.playerApp = playerApp;
-LOG('✅ player.js loaded');
+systemLog.debug('app', 'load', 'Player composition root loaded');

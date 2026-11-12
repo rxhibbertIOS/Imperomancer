@@ -1,0 +1,93 @@
+/* Chronicle is a docked sidebar card, outside the sidebar's scrolling body. */
+.system-log {
+    z-index: 10;
+    width: 340px;
+    flex: 0 0 auto;
+    background: var(--panel-1);
+}
+
+.system-log__title { cursor: default; }
+.system-log__title:hover { background: transparent; color: var(--text-2); }
+.system-log__count { min-width: 24px; justify-content: center; }
+
+.system-log__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+}
+
+.system-log__toggle:hover { background: rgba(255, 255, 255, 0.05); }
+.system-log__toggle:focus-visible { outline: 2px solid var(--gold-dim); outline-offset: 2px; }
+.system-log__collapse-icon { display: none; }
+.system-log.is-expanded .system-log__expand-icon { display: none; }
+.system-log.is-expanded .system-log__collapse-icon { display: block; }
+
+/* The compact event uses the same icon, metadata, and message layout as the console. */
+.system-log__summary {
+    position: relative;
+    height: 64px;
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+}
+
+.system-log__preview-entry {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px;
+    line-height: 1.35;
+    background: var(--panel-1);
+    animation: system-log-preview-in 240ms ease-out both;
+}
+
+.system-log__preview-entry.is-leaving { animation: system-log-preview-out 240ms ease-in both; }
+.system-log__preview-icon,
+.system-log__icon,
+.system-log__preview-text { overflow: hidden; color: inherit; text-overflow: ellipsis; white-space: nowrap; }
+.system-log__placeholder { padding: 22px 16px; color: var(--text-3); }
+
+.system-log__panel {
+    position: absolute;
+    bottom: calc(100% + 1px);
+    left: 0;
+    display: none;
+    /* The full Chronicle deliberately overlays the stage instead of becoming a narrow sidebar list. */
+    width: min(640px, calc(100vw - 16px));
+    height: min(420px, calc(100vh - 88px));
+    overflow: hidden;
+    background: var(--panel-1);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+}
+
+.system-log.is-expanded .system-log__panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    animation: system-log-panel-in 180ms ease-out both;
+}
+
+/* The sidebar normally clips collapsed controls; only an open Chronicle may cross into the stage. */
+.panel:has(.system-log.is-expanded) { overflow: visible; position: relative; z-index: 200; }
+.system-log__header,
+.system-log__controls { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.system-log__header h2 { margin-right: auto; font-size: 13px; }.system-log__header-actions { display: inline-flex; gap: 4px; }.system-log__header-button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 1px solid var(--border-2); border-radius: 5px; background: var(--panel-1); color: var(--text); cursor: pointer; }.system-log__header-button:hover { background: rgba(255, 255, 255, 0.05); }.system-log__controls { flex-wrap: wrap; }.system-log__filters { display: flex; flex-wrap: wrap; gap: 4px; }.system-log__filters button { padding: 3px 6px; border: 1px solid var(--border-2); border-radius: 4px; background: var(--panel-1); color: var(--text); cursor: pointer; font-size: 11px; }.system-log__filters .is-active { border-color: var(--gold); color: var(--gold-2); }.system-log__controls input { flex: 1; min-width: 120px; padding: 5px 7px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 5px; }.system-log__entries { flex: 1; overflow: auto; padding: 8px; }
+
+.system-log__entry { display: flex; gap: 8px; padding: 8px; border-radius: 6px; line-height: 1.35; }.system-log__entry + .system-log__entry { margin-top: 4px; }.system-log__entry--new { animation: system-log-entry-in 280ms ease-out both; }.system-log__meta { display: flex; flex-wrap: wrap; gap: 6px; color: var(--text-3); font-size: 10px; }.system-log__meta span { text-transform: uppercase; }.system-log__entry p { margin-top: 2px; }.system-log__entry pre { max-height: 100px; margin-top: 5px; overflow: auto; color: inherit; font: 10px/1.3 ui-monospace, monospace; white-space: pre-wrap; }.system-log__entry--debug { color: var(--blue); }.system-log__entry--info { color: var(--text); }.system-log__entry--success { color: var(--green); }.system-log__entry--warn { color: #f5a541; }.system-log__entry--danger { color: var(--red); }.system-log__entry--error { color: #fff; background: #a62f35; }.system-log__empty { padding: 20px; text-align: center; color: var(--text-3); }
+
+@keyframes system-log-preview-in { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+@keyframes system-log-preview-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100%); } }
+@keyframes system-log-entry-in { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes system-log-panel-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .system-log__preview-entry, .system-log__entry--new, .system-log.is-expanded .system-log__panel { animation: none; } }

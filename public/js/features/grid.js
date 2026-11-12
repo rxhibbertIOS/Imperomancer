@@ -280,7 +280,7 @@ function gridFeature() {
         enterLock() {
             const sw = this.lockedSceneW();
             if (!isFinite(sw) || sw <= 0) {
-                LOG('⚠️ Cannot lock: missing display info or scene metadata');
+                systemLog.warn('grid', 'lock', 'Cannot lock: display information or scene metadata is missing');
                 this.locked = false;
                 return;
             }

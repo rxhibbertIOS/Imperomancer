@@ -14,6 +14,7 @@
 @import 'features/pointer.css';
 @import 'features/shapes.css';
 @import 'features/whiteboard.css';
+@import 'features/system-log.css';
 
 /* Visually hidden but readable by screen readers */
 .sr-only {

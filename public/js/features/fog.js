@@ -73,6 +73,7 @@ function fogFeature() {
         setFogEditing(editing) {
             this.fogEditing = editing === true;
             if (!this.fogEditing) this.hideFogCursor();
+            systemLog.info('fog', 'edit', this.fogEditing ? 'Fog editing enabled' : 'Fog editing disabled');
         },
 
         clearFog() {
@@ -81,6 +82,7 @@ function fogFeature() {
             this.setFogEditing(false);
             this.saveSelectedScene?.(true, true);
             window.syncState?.(this.$data);
+            systemLog.danger('fog', 'clear', 'Fog and all reveal strokes cleared');
         },
 
         resetFog() {
@@ -89,6 +91,7 @@ function fogFeature() {
             this.setFogEditing(true);
             this.saveSelectedScene?.(true, true);
             window.syncState?.(this.$data);
+            systemLog.success('fog', 'reset', 'Fog reset and editing enabled');
         },
 
         getFogCanvas() {

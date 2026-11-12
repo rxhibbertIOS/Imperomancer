@@ -87,10 +87,7 @@
     const hasMod = parsed.mods.alt || parsed.mods.ctrl || parsed.mods.meta || parsed.mods.shift;
     if (hasMod) return true;
     if (SAFE_ALONE_KEYS.has(parsed.key)) return true;
-    console.warn(
-      `[shortcuts] "${combo}" has no modifier and is not a safe key. ` +
-      `Add alt/ctrl/meta/shift, or use Escape / ? / F-keys. Ignoring.`
-    );
+    systemLog.warn('shortcuts', 'validate', `Ignored unsafe bare shortcut "${combo}"`);
     return false;
   }
 
@@ -158,7 +155,7 @@
       .map(([combo, def]) => {
         let parsed;
         try { parsed = parseCombo(combo); }
-        catch (err) { console.error('[shortcuts]', err.message); return null; }
+        catch (err) { systemLog.error('shortcuts', 'parse', err.message, err.stack); return null; }
         if (!validateCombo(combo, parsed)) return null;
         return { combo, ...def, parsed };
       })
@@ -196,7 +193,7 @@
         const fn = component[b.action];
         if (typeof fn !== 'function') {
           if (!warned.has(b.action)) {
-            console.warn(`[shortcuts] "${b.combo}" → missing action "${b.action}" on component`);
+            systemLog.warn('shortcuts', 'attach', `Missing component action "${b.action}" for ${b.combo}`);
             warned.add(b.action);
           }
           continue;

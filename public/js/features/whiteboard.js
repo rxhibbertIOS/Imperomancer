@@ -42,6 +42,7 @@ function whiteboardFeature() {
             if (!this.whiteboardActive) this._whiteboardDraft = null;
             this.drawWhiteboard();
             if (window.MODE === 'dm') window.syncState?.(this.$data);
+            systemLog.info('whiteboard', 'toggle', this.whiteboardActive ? 'Whiteboard enabled' : 'Whiteboard disabled');
         },
 
         clearWhiteboard() {
@@ -49,6 +50,7 @@ function whiteboardFeature() {
             this._whiteboardDraft = null;
             this.drawWhiteboard();
             if (window.MODE === 'dm') window.syncState?.(this.$data);
+            systemLog.danger('whiteboard', 'clear', 'Whiteboard strokes cleared');
         },
 
         whiteboardPoint(event) {

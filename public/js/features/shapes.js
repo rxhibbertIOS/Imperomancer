@@ -121,6 +121,7 @@ function shapesFeature() {
             this.selectedEffectId = effect.id;
             this.saveSelectedScene?.(true, true);
             if (window.syncState && window.MODE === 'dm') window.syncState(this.$data);
+            systemLog.success('effects', 'add', `Added ${effect.geometry.kind} effect`);
         },
 
         selectedEffect() { return this.effects.find(effect => effect.id === this.selectedEffectId) || null; },
@@ -148,6 +149,7 @@ function shapesFeature() {
             this.selectedEffectId = null;
             this.saveSelectedScene?.(true, true);
             if (window.syncState && window.MODE === 'dm') window.syncState(this.$data);
+            systemLog.danger('effects', 'delete', 'Selected effect deleted');
         },
         clearEffects(sync = true) {
             Object.values(this._temporaryEffectTimers).forEach(timer => clearTimeout(timer));
@@ -158,6 +160,7 @@ function shapesFeature() {
             this.measurement = null;
             this.cancelShapeDrag();
             if (sync && window.MODE === 'dm') window.syncState?.(this.$data);
+            systemLog.danger('effects', 'clear', 'All effects cleared');
         },
         toggleEffectVisibility(id) {
             this.effects = this.effects.map(effect => effect.id === id ? { ...effect, visibility: effect.visibility === 'public' ? 'private' : 'public' } : effect);

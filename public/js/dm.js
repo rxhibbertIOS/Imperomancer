@@ -34,10 +34,10 @@ function dmApp() {
 
         init() {
             if (window.MODE !== 'dm') {
-                LOG('⏭️ dmApp skipped (mode = ' + window.MODE + ')');
+                systemLog.debug('app', 'initialise', `DM app skipped for ${window.MODE} mode`);
                 return;
             }
-            LOG('✅ DM App initializing…');
+            systemLog.success('app', 'initialise', 'DM app initialised');
 
             this.loadHistory();
             if (!this.initiativeRows.length) this.addInitiativeRow();
@@ -76,7 +76,7 @@ function dmApp() {
 
             channel.onmessage = (e) => {
                 const d = e.data;
-                if (d.type !== 'viewAck') LOG('📩 DM received:', d.type, d);
+                if (d.type !== 'viewAck') systemLog.debug('channel', 'receive', `DM received ${d.type}`);
                 if (d.type === 'requestSync') {
                     window.resetViewSync?.();
                     if (window.broadcastScene) {
@@ -90,7 +90,6 @@ function dmApp() {
                 } else if (d.type === 'viewAck') {
                     window.acknowledgeView?.(d.sequence);
                 } else if (d.type === 'publicRollResult') {
-                    LOG('📩 DM publicRollResult payload:', d);
                     this.onPublicResult(d);
                 }
                 if (d.type === 'displayInfo') {
@@ -228,7 +227,7 @@ function dmApp() {
             const playerWindow = window.open(playerUrl, '_blank');
             if (!playerWindow) {
                 this.isConnecting = false;
-                WARN('Player window could not be opened');
+                systemLog.warn('player', 'openWindow', 'Player window could not be opened');
                 return;
             }
 
@@ -289,4 +288,4 @@ function dmApp() {
 }
 
 window.dmApp = dmApp;
-LOG('✅ dm.js loaded');
+systemLog.debug('app', 'load', 'DM composition root loaded');

@@ -39,6 +39,7 @@ function pointerFeature() {
 
         toggleFocusMode() {
             this.focusMode = !this.focusMode;
+            systemLog.info('pointer', 'toggleFocus', this.focusMode ? 'Focus mode enabled' : 'Focus mode disabled');
         },
 
         // NEW: called by swatches, the <input type="color">, and the reset button
@@ -86,6 +87,7 @@ function pointerFeature() {
             if (window.syncState && window.MODE === 'dm') {
                 window.syncState(this.$data);
             }
+            systemLog.info('pointer', 'clear', 'Focus pings cleared');
         },
 
         focusPingStyle(ping) {

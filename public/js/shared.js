@@ -2,15 +2,6 @@
 // SHARED UTILITIES – no modules, just globals
 // ============================================================
 
-window.LOG = function(...args) {
-    console.log(`[${window.MODE?.toUpperCase() || '??'}]`, ...args);
-};
-window.WARN = function(...args) {
-    console.warn(`[${window.MODE?.toUpperCase() || '??'}]`, ...args);
-};
-window.ERR = function(...args) {
-    console.error(`[${window.MODE?.toUpperCase() || '??'}]`, ...args);
-};
 
 window.channel = new BroadcastChannel('dnd-hud');
 
@@ -103,4 +94,4 @@ window.parseNotation = function(notation) {
     return { count, sides, mod };
 };
 
-LOG('✅ shared.js loaded');
+systemLog.debug('shared', 'load', 'Legacy shared utility bundle loaded');

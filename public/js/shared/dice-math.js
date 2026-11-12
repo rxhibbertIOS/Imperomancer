@@ -2,6 +2,13 @@ window.roll = function(sides) {
     return Math.floor(Math.random() * sides) + 1;
 };
 
+/** Formats a completed dice roll consistently for Chronicle and other UI logs. */
+window.formatDiceLog = function(notation, message, total) {
+    const roll = `${notation || 'Dice'} rolled`;
+    const reason = String(message || '').trim();
+    return reason ? `${roll} for ${reason}: ${total ?? '?'}` : `${roll}: ${total ?? '?'}`;
+};
+
 /** Parse "2d6+3", "1d20", "4d6-1". Returns null on malformed input. */
 window.parseNotation = function(notation) {
     if (!notation) return null;

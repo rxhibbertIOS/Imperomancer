@@ -25,7 +25,7 @@ window.diceFeature = function() {
         /* ---------- NOTATION BUILDER ---------- */
         initDiceNotationBuilder() {
             if (typeof DieBuilder === 'undefined') {
-                WARN('DieBuilder not loaded — notation popup disabled');
+                systemLog.warn('dice', 'initialiseNotationBuilder', 'DieBuilder is unavailable; notation popup disabled');
                 return;
             }
 
@@ -54,7 +54,7 @@ window.diceFeature = function() {
                 callbacks: {
                     onAccept: (notation) => {
                         this.diceNotation = notation;
-                        LOG('✅ DieBuilder accepted notation:', notation);
+                        systemLog.success('dice', 'setNotation', `Notation set to ${notation}`);
                     },
                 },
                 popup: {
@@ -107,18 +107,18 @@ window.diceFeature = function() {
                 if (typeof DICE !== 'undefined' && typeof DICE.rollSilent === 'function') {
                     result = await DICE.rollSilent(notation);
                 } else {
-                    WARN('DICE.rollSilent unavailable — using legacy fallback parser');
+                    systemLog.warn('dice', 'roll', 'Silent-roll API unavailable; using fallback parser');
                     result = this._fallbackRoll(notation);
                 }
             } catch (err) {
-                WARN('rollSilent rejected:', err);
+                systemLog.warn('dice', 'roll', 'Silent roll rejected; using fallback parser', err.stack);
                 // Library rejections always carry error:true (via p()).
                 // Anything else is a genuine bug — log it before falling back
                 // so it isn't masked by the simpler parser.
                 if (err && err.error) {
                     result = err;
                 } else {
-                    WARN('Unexpected rollSilent failure — falling back to legacy parser');
+                    systemLog.warn('dice', 'roll', 'Silent roll failed; using fallback parser');
                     result = this._fallbackRoll(notation);
                 }
             }
@@ -157,7 +157,7 @@ window.diceFeature = function() {
                 fail:     this.lastResult.fail,
             });
             this.diceMessage = '';
-            LOG(`Private roll: ${notation} = ${this.lastResult.total}`);
+            systemLog.success('dice', 'rollPrivate', formatDiceLog(notation, this.lastResult.message, this.lastResult.total));
         },
 
         /* ---------- PUBLIC ROLL (hands off to player) ---------- */
@@ -171,19 +171,18 @@ window.diceFeature = function() {
                 tag: 'Roll',
             });
 
-            LOG(`🔊 Public roll sent: ${notation}`);
+            systemLog.info('dice', 'rollPublic', `Sent public ${notation} roll`);
 
             clearTimeout(this._publicRollTimeout);
             this._publicRollTimeout = setTimeout(() => {
                 if (this.diceRolling) {
-                    WARN('Public roll timed out – unlocking');
+                    systemLog.warn('dice', 'rollPublic', 'Public roll timed out; controls unlocked');
                     this.diceRolling = false;
                 }
             }, 8000);
         },
 
         onPublicResult(data) {
-            LOG('onPublicResult called with:', data);
             clearTimeout(this._publicRollTimeout);
             this.diceRolling = false;
 
@@ -205,6 +204,12 @@ window.diceFeature = function() {
             this.lastRawResult = raw;
             this.showResultModal = true;
 
+            systemLog.success('dice', 'receiveResult', formatDiceLog(
+                this.lastResult.notation,
+                this.lastResult.message,
+                this.lastResult.total
+            ));
+
             this.addToHistory({
                 id:       uuid(),
                 time:     Date.now(),
@@ -217,7 +222,7 @@ window.diceFeature = function() {
                 fail:     this.lastResult.fail,
             });
 
-            LOG('DM modal opened with:', this.lastResult);
+            systemLog.debug('dice', 'openResult', 'Dice result modal opened');
             clearTimeout(this._dmModalTimer);
             this._dmModalTimer = setTimeout(() => {
                 this.showResultModal = false;
