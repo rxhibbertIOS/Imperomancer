@@ -19,7 +19,7 @@ function shapesFeature() {
         effects: [],              // persistent, editable scene effects
         selectedEffectId: null,
         effectSelectMode: false,
-        effectDraft: { color: '#ffd166', opacity: 0.5, label: '', visibility: 'public', persistent: false },
+        effectDraft: { color: '#ffd166', opacity: 0.5, label: '', visibility: 'public', persistent: false, showDistance: true },
         _shapeLongPressTimer: null,
         _coneAxis: null,
         measurement: null,        // DM-only range ruler; never synchronised
@@ -112,6 +112,7 @@ function shapesFeature() {
                 color: this.effectDraft.color || '#ffd166',
                 opacity: Math.max(0, Math.min(1, Number(this.effectDraft.opacity) || .5)),
                 label: String(this.effectDraft.label || '').slice(0, 48),
+                showDistance: this.effectDraft.showDistance !== false,
                 visibility: this.effectDraft.visibility === 'private' ? 'private' : 'public',
                 persistent: true,
                 createdAt: Date.now(),
@@ -126,7 +127,7 @@ function shapesFeature() {
         selectEffect(id) {
             this.selectedEffectId = id;
             const effect = this.selectedEffect();
-            if (effect) this.effectDraft = { color: effect.color, opacity: effect.opacity, label: effect.label, visibility: effect.visibility, persistent: true };
+            if (effect) this.effectDraft = { color: effect.color, opacity: effect.opacity, label: effect.label, visibility: effect.visibility, persistent: true, showDistance: effect.showDistance !== false };
         },
         updateSelectedEffect() {
             const selected = this.selectedEffect();
@@ -135,6 +136,7 @@ function shapesFeature() {
                 ...effect, color: this.effectDraft.color || effect.color,
                 opacity: Math.max(0, Math.min(1, Number(this.effectDraft.opacity) || 0)),
                 label: String(this.effectDraft.label || '').slice(0, 48),
+                showDistance: this.effectDraft.showDistance !== false,
                 visibility: this.effectDraft.visibility === 'private' ? 'private' : 'public',
             });
             this.saveSelectedScene?.(true, true);
@@ -146,6 +148,16 @@ function shapesFeature() {
             this.selectedEffectId = null;
             this.saveSelectedScene?.(true, true);
             if (window.syncState && window.MODE === 'dm') window.syncState(this.$data);
+        },
+        clearEffects(sync = true) {
+            Object.values(this._temporaryEffectTimers).forEach(timer => clearTimeout(timer));
+            this._temporaryEffectTimers = {};
+            this.effects = [];
+            this.flashShapes = [];
+            this.selectedEffectId = null;
+            this.measurement = null;
+            this.cancelShapeDrag();
+            if (sync && window.MODE === 'dm') window.syncState?.(this.$data);
         },
         toggleEffectVisibility(id) {
             this.effects = this.effects.map(effect => effect.id === id ? { ...effect, visibility: effect.visibility === 'public' ? 'private' : 'public' } : effect);
@@ -283,6 +295,7 @@ function shapesFeature() {
                     parts.push(`<path d="M ${p.a.x} ${p.a.y} L ${p.b.x + px} ${p.b.y + py} L ${p.b.x - px} ${p.b.y - py} Z" class="${cls} shape-fill"${style}/>`);
                 }
                 if (label) parts.push(`<text class="effect-label" x="${p.a.x}" y="${p.a.y - 14}"${style}>${label}</text>`);
+                if (shape.showDistance) parts.push(`<text class="shape-distance-label" x="${(p.a.x + p.b.x) / 2}" y="${(p.a.y + p.b.y) / 2 - 10}">${this.shapeDistanceLabel(g)}</text>`);
             };
 
             (this.flashShapes || []).forEach(s => emit(s, 'shape-stroke flash-shape'));
@@ -294,6 +307,8 @@ function shapesFeature() {
                 const a = this.sceneToStage(preview.anchor.x, preview.anchor.y);
                 const b = this.sceneToStage(preview.endpoint.x, preview.endpoint.y);
                 if (a && b) parts.push(`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="shape-guide"/>`);
+                const readout = this.shapeDistanceLabel(preview);
+                if (readout) parts.push(`<text class="shape-distance-label" x="${(a.x + b.x) / 2}" y="${(a.y + b.y) / 2 - 10}">${readout}</text>`);
             }
             return parts.join('');
         },
@@ -356,11 +371,6 @@ function shapesFeature() {
         // ============================================================
         shapeStagePoints(geometry) {
             if (!geometry) return null;
-            const scene = document.querySelector('[data-grid-scene]');
-            if (!scene) return null;                 // stage isn't mounted yet
-            const rect = scene.getBoundingClientRect();
-            if (!rect || !rect.width || !rect.height) return null;
-            
             const a = this.sceneToStage(geometry.anchor.x, geometry.anchor.y);
             const b = this.sceneToStage(geometry.endpoint.x, geometry.endpoint.y);
             if (!a || !b) return null;

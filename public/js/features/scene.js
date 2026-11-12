@@ -150,6 +150,11 @@ window.sceneFeature = function() {
             this.pendingImage = null;
             this.pendingMediaType = null;
             Object.assign(this, this.captureSceneSettingsFrom(scene));
+            // Effects are deliberately scoped to the current locked board,
+            // not carried between scenes.
+            this.effects = [];
+            this.flashShapes = [];
+            this.selectedEffectId = null;
             this.$nextTick(() => {
                 this._restoringScene = false;
                 this.ensureScenePlayback();

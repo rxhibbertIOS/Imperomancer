@@ -1,0 +1,20 @@
+<section class="card effects-card" x-show="locked" x-transition.opacity aria-labelledby="effects-card-title">
+    <header class="card-head"><h3 id="effects-card-title" class="card-title">
+        <button type="button" class="card-toggle" @click="toggleCard('effects')" :aria-expanded="openCard === 'effects'" aria-controls="effects-card-body">
+            <img class="app-icon" src="../assets/icons/layers.svg" alt="" aria-hidden="true"><span>Effects & layers</span><span class="card-head-right"><span class="chip chip-muted" x-text="effects.length"></span></span>
+        </button>
+    </h3></header>
+    <div id="effects-card-body" class="card-body" x-show="openCard === 'effects'" x-transition.opacity>
+        <label class="field-label">Colour</label><input type="color" x-model="effectDraft.color" aria-label="Effect colour">
+        <label class="field-label">Opacity <span x-text="Math.round(effectDraft.opacity * 100) + '%' "></span></label>
+        <input type="range" min="0.05" max="1" step="0.05" class="grid-slider" x-model.number="effectDraft.opacity">
+        <input type="text" class="field-input" x-model="effectDraft.label" maxlength="48" placeholder="Optional effect label" aria-label="Effect label">
+        <label class="switch-row"><input type="checkbox" x-model="effectDraft.showDistance"><span>Show distance label</span></label>
+        <label class="switch-row"><input type="checkbox" x-model="effectDraft.persistent"><img class="app-icon" :src="effectDraft.persistent ? '../assets/icons/layers-plus.svg' : '../assets/icons/layers-minus.svg'" alt="" aria-hidden="true"><span>Keep as layer</span></label>
+        <label class="switch-row"><input type="checkbox" :checked="effectDraft.visibility === 'public'" @change="effectDraft.visibility = $event.target.checked ? 'public' : 'private'"><span>Visible on table</span></label>
+        <div class="effect-layer-list" x-show="effects.length" aria-label="Effect layers"><template x-for="effect in effects" :key="effect.id"><div class="effect-layer" :class="{ selected: selectedEffectId === effect.id }"><button type="button" class="effect-layer-main" @click="selectEffect(effect.id)"><span class="effect-swatch" :style="{ backgroundColor: effect.color }"></span><span x-text="effect.label || effect.geometry.kind"></span></button><button type="button" class="effect-layer-action" @click="toggleEffectVisibility(effect.id)" :title="effect.visibility === 'public' ? 'Hide from table' : 'Show on table'" x-text="effect.visibility === 'public' ? '◉' : '○'"></button><button type="button" class="effect-layer-action" @click="focusEffect(effect.id)" title="Focus map on effect">⌖</button><button type="button" class="effect-layer-action danger" @click="selectedEffectId = effect.id; deleteSelectedEffect()" title="Remove layer" aria-label="Remove layer"><img class="app-icon" src="../assets/icons/layers-minus.svg" alt="" aria-hidden="true"></button></div></template></div>
+        <p class="history-empty" x-show="!effects.length">No permanent effects on this locked grid.</p>
+        <div class="grid-field-row" x-show="effects.length"><button type="button" class="btn btn-ghost btn-sm" :aria-pressed="effectSelectMode" @click="toggleEffectSelectMode()" x-text="effectSelectMode ? 'Selecting on map…' : 'Select on map'"></button><button type="button" class="btn btn-ghost btn-sm" x-show="selectedEffectId" @click="updateSelectedEffect()">Update layer</button></div>
+        <a class="field-hint" href="../EFFECTS_GUIDE.md" target="_blank" rel="noopener">Open the grid effects guide</a>
+    </div>
+</section>

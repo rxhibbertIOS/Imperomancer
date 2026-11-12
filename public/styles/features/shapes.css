@@ -22,6 +22,7 @@
 .shape-fill { fill: rgba(255, 209, 102, 0.16); }
 .measurement-stroke { stroke: #70d6ff; stroke-dasharray: 8 5; filter: drop-shadow(0 0 5px rgba(112,214,255,.7)); }
 .shape-guide { stroke: rgba(255,255,255,.75); stroke-width: 1.5; stroke-dasharray: 4 4; pointer-events: none; }
+.shape-distance-label { fill:#fff; font:700 13px system-ui,sans-serif; text-anchor:middle; paint-order:stroke; stroke:rgba(0,0,0,.85); stroke-width:4px; }
 
 .flash-shape {
     animation: shape-flash-fade 4s ease-out forwards;
@@ -64,6 +65,7 @@
 }
 .shape-menu-toggle { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:5px 4px; font-size:11px; color:var(--text-2, #bbb); cursor:pointer; }
 .shape-menu-toggle input { accent-color:var(--gold, #ffd166); }
+.shape-menu-colour { display:flex; align-items:center; justify-content:space-between; padding:5px 4px; font-size:11px; color:var(--text-2,#bbb); }.shape-menu-colour input { width:28px; height:22px; border:0; background:transparent; }.shape-menu-label { margin:5px 0; }
 
 .shape-menu-grid {
     display: grid;
@@ -114,6 +116,7 @@
 }
 .shape-tooltip button { margin-left: 8px; padding: 1px 5px; border: 0; border-radius: 3px; background: rgba(255,255,255,.14); color: inherit; font: inherit; cursor: pointer; }
 .player-shape-tooltip { left: 16px; top: 16px; z-index: 20; }
+.shape-cancel { position:absolute; z-index:101; right:10px; bottom:10px; padding:6px 9px; border:1px solid var(--gold,#ffd166); border-radius:5px; background:rgba(0,0,0,.8); color:var(--gold,#ffd166); font-size:11px; cursor:pointer; }
 .effect-label, .effect-status text { fill: #fff; font: 700 12px system-ui, sans-serif; paint-order: stroke; stroke: rgba(0,0,0,.8); stroke-width: 3px; text-anchor: middle; }
 .effect-status circle { stroke: #fff; stroke-width: 2px; fill: #d65c5c; }
 

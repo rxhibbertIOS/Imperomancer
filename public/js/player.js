@@ -197,6 +197,9 @@ function playerApp() {
             this.scenePxPerCell   = s.scenePxPerCell   ?? 100;
             this.sceneGridOriginX = s.sceneGridOriginX ?? 0;
             this.sceneGridOriginY = s.sceneGridOriginY ?? 0;
+            this.cellUnits = s.cellUnits ?? 5;
+            this.unitNameSingular = s.unitNameSingular ?? 'foot';
+            this.unitNamePlural = s.unitNamePlural ?? 'feet';
             this.focusPings = s.focusPings || [];
             this.effects = s.effects || [];
             this.flashShapes = s.flashShapes || [];

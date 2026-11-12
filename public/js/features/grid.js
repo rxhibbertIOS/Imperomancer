@@ -288,6 +288,7 @@ function gridFeature() {
         },
 
         exitLock() {
+            this.clearEffects?.();
             this.drawGrid();
             if (window.syncState && window.MODE === 'dm') window.syncState(this.$data);
         },
