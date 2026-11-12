@@ -1,0 +1,25 @@
+<section class="card" aria-labelledby="whiteboard-card-title">
+    <header class="card-head"><h3 id="whiteboard-card-title" class="card-title">
+        <button type="button" class="card-toggle" @click="toggleCard('whiteboard')" :aria-expanded="openCard === 'whiteboard'" aria-controls="whiteboard-card-body">
+            <img class="app-icon" src="../assets/icons/brush.svg" alt="" aria-hidden="true"><span>Whiteboard</span>
+            <span class="card-head-right"><span class="chip chip-gold" x-show="whiteboardActive">Live</span><span class="accordion-arrow" :class="{ open: openCard === 'whiteboard' }" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span></span>
+        </button>
+    </h3></header>
+    <div id="whiteboard-card-body" class="card-body" x-show="openCard === 'whiteboard'" x-transition.opacity>
+        <button type="button" class="btn" :class="whiteboardActive ? 'btn-primary' : 'btn-ghost'" :aria-pressed="whiteboardActive" @click="setWhiteboardActive(!whiteboardActive)" x-text="whiteboardActive ? 'Hide whiteboard' : 'Show whiteboard'"></button>
+        <div x-show="whiteboardActive">
+            <div class="field-label">Tool</div>
+            <div class="chips" role="group" aria-label="Whiteboard tool">
+                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='pencil'}" @click="whiteboardTool='pencil'">Pencil</button>
+                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='line'}" @click="whiteboardTool='line'">Line</button>
+                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='rectangle'}" @click="whiteboardTool='rectangle'">Rectangle</button>
+                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='ellipse'}" @click="whiteboardTool='ellipse'">Ellipse</button>
+                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='eraser'}" @click="whiteboardTool='eraser'">Eraser</button>
+            </div>
+            <label class="field-label" for="whiteboard-colour">Colour</label><input id="whiteboard-colour" type="color" x-model="whiteboardColor">
+            <label class="field-label grid-size-label" for="whiteboard-size"><span>Stroke size</span><span class="grid-size-readout" x-text="whiteboardSize + ' px'"></span></label>
+            <input id="whiteboard-size" type="range" min="2" max="24" step="1" class="grid-slider" x-model.number="whiteboardSize">
+            <button type="button" class="btn btn-ghost btn-sm" @click="clearWhiteboard()">Clear whiteboard</button>
+        </div>
+    </div>
+</section>

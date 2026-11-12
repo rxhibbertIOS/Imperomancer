@@ -1,0 +1,19 @@
+.whiteboard-panel {
+    position: absolute;
+    top: 0;
+    left: 4%;
+    right: 4%;
+    height: min(68%, 680px);
+    z-index: 20;
+    padding: 12px;
+    background: #e7e9ed;
+    border: 1px solid rgba(15, 23, 42, .35);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, .38);
+    transform: translateY(calc(-100% - 8px));
+    transition: transform 340ms cubic-bezier(.22, .9, .26, 1);
+    pointer-events: none;
+}
+.whiteboard-panel.active { transform: translateY(0); pointer-events: auto; }
+.whiteboard-canvas { display: block; width: 100%; height: 100%; background: #fff; border: 1px solid #cbd1db; border-radius: 6px; touch-action: none; }

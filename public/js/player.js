@@ -13,6 +13,7 @@ function playerApp() {
         ...initiativeFeature(), 
         ...gridFeature(),
         ...fogFeature(),
+        ...whiteboardFeature(),
         ...sceneFeature(), 
         ...pointerFeature(),
         ...shapesFeature(),
@@ -47,6 +48,7 @@ function playerApp() {
             this.$nextTick(() => this.initDiceBox());
             this.initGrid();
             this.initFog();
+            this.initWhiteboard();
             this.initStageObserver();
 
             this.$nextTick(() => {
@@ -147,6 +149,7 @@ function playerApp() {
             this.stopViewPortConnection();
             this._displayResizeObserver?.disconnect();
             this._fogResizeObserver?.disconnect();
+            this._whiteboardResizeObserver?.disconnect();
             if (this._displayResizeFallback) window.removeEventListener('resize', this._displayResizeFallback);
             if (this._viewAnimationRaf !== null) cancelAnimationFrame(this._viewAnimationRaf);
             clearTimeout(this._shapeLongPressTimer);
@@ -196,6 +199,10 @@ function playerApp() {
             this.fogEnabled       = s.fogEnabled === true;
             this.fogColor         = s.fogColor || '#3e434e';
             this.fogStrokes       = s.fogStrokes || [];
+            this.whiteboardActive = s.whiteboardActive === true;
+            this.whiteboardStrokes = s.whiteboardStrokes || [];
+            this.whiteboardPreview = s.whiteboardPreview || null;
+            this.$nextTick?.(() => this.drawWhiteboard?.());
             this.gridType         = s.gridType         ?? 'square';
             this.gridShowLabels   = s.gridShowLabels   === true;
             this.gridLabelEvery   = s.gridLabelEvery   ?? 5;

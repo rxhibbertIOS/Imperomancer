@@ -15,6 +15,7 @@ function dmApp() {
         ...diceFeature(),
         ...gridFeature(),
         ...fogFeature(),
+        ...whiteboardFeature(),
         ...pointerFeature(),
         ...shapesFeature(),
 
@@ -43,6 +44,7 @@ function dmApp() {
             this.initDiceNotationBuilder();
             this.initGrid();
             this.initFog();
+            this.initWhiteboard();
             this.initScenes();
             this.initResizeClamp();
             this.initStageObserver();
@@ -118,6 +120,7 @@ function dmApp() {
             clearTimeout(this._playerConnectTimer);
             this._stageRO?.disconnect();
             this._fogResizeObserver?.disconnect();
+            this._whiteboardResizeObserver?.disconnect();
             if (this._gridBeforeUnload) window.removeEventListener('beforeunload', this._gridBeforeUnload);
             clearTimeout(this._shapeLongPressTimer);
         },
@@ -199,7 +202,16 @@ function dmApp() {
             }
         },
 
+        exitCardInteraction(card) {
+            if (card === 'pointer') this.focusMode = false;
+            if (card === 'fog') this.setFogEditing?.(false);
+            if (card === 'effects') this.effectSelectMode = false;
+            if (card === 'whiteboard' && this.whiteboardActive) this.setWhiteboardActive?.(false);
+        },
+
         toggleCard(name) {
+            const previousCard = this.openCard;
+            if (previousCard) this.exitCardInteraction(previousCard);
             this.openCard = this.openCard === name ? null : name;
             if (this.openCard !== 'dice') this.showNotationPopup = false;
         },
