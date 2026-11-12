@@ -1,9 +1,11 @@
+/** Cross-window synchronization transport for the DM and player views. @type {BroadcastChannel} */
 window.channel = new BroadcastChannel('dnd-hud');
 
 /**
  * Deep clone that strips out anything non-serialisable
  * (Three.js objects, canvases, audio, DOM nodes).
  */
+/** Produces a JSON-safe clone, omitting DOM and rendering objects. @param {*} obj @returns {*} */
 window.clone = function(obj) {
     return JSON.parse(JSON.stringify(obj, (key, value) => {
         if (value && typeof value === 'object') {
@@ -22,6 +24,7 @@ window.clone = function(obj) {
     }));
 };
 
+/** Derives table-display pixels per physical inch from calibration settings. @param {object} data @returns {number} */
 function computeTablePpi(data) {
     const diag = Math.hypot(data.tableAspectW || 16, data.tableAspectH || 9);
     const physW = (data.tableDiagonal || 55) * (data.tableAspectW || 16) / diag;
@@ -34,6 +37,7 @@ function computeTablePpi(data) {
  * The only fields we want to broadcast between tabs.
  * Prevents the dice box / Three.js objects from being stringified.
  */
+/** Selects the serializable state that the player window needs. @param {object} data @param {{includeScene?:boolean,scene?:object,transition?:string,scenePublished?:boolean}} [opts] @returns {object} */
 window.pickSyncState = function(data, opts = {}) {
     const includeScene = opts.includeScene === true;
     const editingPublishedScene = data.selectedSceneId &&
@@ -107,6 +111,7 @@ window.defaultState = window.pickSyncState({});
 
 let stateRevision = 0;
 
+/** Broadcasts a monotonically versioned player-state snapshot. @param {object} state @param {object} [opts] @returns {void} */
 window.syncState = function(state, opts) {
     const payload = window.pickSyncState(state, opts);
     payload.revision = ++stateRevision;
@@ -120,6 +125,7 @@ let viewSequence = 0;
 let inFlightViewSequence = null;
 let latestView = null;
 
+/** Attaches a dedicated MessagePort for acknowledged, back-pressure-aware view updates. @param {MessagePort} port @returns {void} */
 window.attachViewPort = function(port) {
     window.resetViewSync();
     window.viewPort?.close();
@@ -132,6 +138,7 @@ window.attachViewPort = function(port) {
     port.start?.();
 };
 
+/** Sends the newest pending view only when no previous view awaits acknowledgement. @returns {void} */
 function sendLatestView() {
     if (inFlightViewSequence !== null || !latestView) return;
     const view = latestView;
@@ -142,6 +149,7 @@ function sendLatestView() {
     transport.postMessage({ type: 'view', sequence, view });
 }
 
+/** Queues a viewport update, collapsing intermediate frames. @param {object} data @returns {void} */
 window.syncView = function(data) {
     latestView = {
         cx: data.view?.cx ?? 0,
@@ -151,18 +159,21 @@ window.syncView = function(data) {
     sendLatestView();
 };
 
+/** Releases the next queued viewport update after matching an acknowledgement. @param {number} sequence @returns {void} */
 window.acknowledgeView = function(sequence) {
     if (sequence !== inFlightViewSequence) return;
     inFlightViewSequence = null;
     sendLatestView();
 };
 
+/** Clears pending viewport delivery state, usually after transport replacement. @returns {void} */
 window.resetViewSync = function() {
     inFlightViewSequence = null;
     latestView = null;
 };
 
 // Publish the selected scene and its display settings to the player.
+/** Publishes a selected scene and display configuration to the player. @param {object} state @param {object} scene @param {string} [transition='none'] @returns {void} */
 window.broadcastScene = function(state, scene, transition = 'none') {
     window.resetViewSync();
     const payload = window.pickSyncState(state, {

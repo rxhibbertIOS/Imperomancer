@@ -1,3 +1,4 @@
+/** Creates scene-library, media lifecycle, viewport, and publication controls. @returns {object} Alpine-compatible scene feature. */
 window.sceneFeature = function() {
     return {
         currentImage: null,

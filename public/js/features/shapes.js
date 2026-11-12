@@ -3,6 +3,7 @@
 // Stage-drawing primitives. Phase 1: line tool, flash-only.
 // (Persistent shapes and the other geometry kinds come next.)
 
+/** Creates the scene-effect palette, drawing interaction, and SVG serialization feature. @returns {object} Alpine-compatible shapes feature. */
 function shapesFeature() {
     return {
         // ---- Anchor menu ----

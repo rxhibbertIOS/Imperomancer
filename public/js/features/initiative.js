@@ -1,5 +1,6 @@
 // js/features/initiative.js
 
+/** Creates initiative display state, optionally including DM roster editing and turn controls. @param {{editable?:boolean}} [options] @returns {object} Alpine-compatible initiative feature. */
 window.initiativeFeature = function({ editable = false } = {}) {
     const view = {
         // ---- Shared read state ----
@@ -320,6 +321,7 @@ window.initiativeFeature = function({ editable = false } = {}) {
  * MUST be defined outside initiativeFeature() — it's a file-level helper,
  * not a per-instance method.
  */
+/** Restores live initiative getters after feature objects have been spread into a component. @param {object} component @returns {object} The same component. */
 window.attachInitiativeGetters = function(component) {
     Object.defineProperties(component, {
         currentCombatant: {

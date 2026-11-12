@@ -5,7 +5,7 @@
     background: rgba(0,0,0,0.25);
     border: 1px solid var(--border);
     border-radius: 6px;
-    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -41,7 +41,7 @@
 
 .history-time {
     color: var(--text-3);
-    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
 }
 .history-roller {
@@ -63,7 +63,7 @@
 .history-total.fail     { color: var(--text-3); }
 .history-notation {
     color: var(--text-3);
-    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
 }
 

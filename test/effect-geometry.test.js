@@ -1,3 +1,4 @@
+/** Unit coverage for the UMD geometry helpers used by scene effects. @module effect-geometry.test */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

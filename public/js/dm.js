@@ -2,6 +2,7 @@
 // DM COMPOSITION ROOT
 // ============================================================
 
+/** Creates the DM Alpine application by composing the editable feature modules. @returns {object} DM application state and actions. */
 function dmApp() {
     const channel = window.channel;
     const sync    = window.syncState;

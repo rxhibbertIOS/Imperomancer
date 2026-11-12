@@ -1,3 +1,4 @@
+/** Legacy global utility bundle retained for pages that do not load core/channel.js. @module shared */
 // ============================================================
 // SHARED UTILITIES – no modules, just globals
 // ============================================================
@@ -5,10 +6,12 @@
 
 window.channel = new BroadcastChannel('dnd-hud');
 
+/** Creates a short UI-local identifier. @returns {string} */
 window.uid = function() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 };
 
+/** Rolls one integer die. @param {number} sides @returns {number} */
 window.roll = function(sides) {
     return Math.floor(Math.random() * sides) + 1;
 };
@@ -17,6 +20,7 @@ window.roll = function(sides) {
  * Deep clone that strips out anything non-serialisable
  * (Three.js objects, canvases, audio, DOM nodes).
  */
+/** Produces a JSON-safe clone, omitting DOM and rendering objects. @param {*} obj @returns {*} */
 window.clone = function(obj) {
     return JSON.parse(JSON.stringify(obj, (key, value) => {
         if (value && typeof value === 'object') {
@@ -42,6 +46,7 @@ window.clone = function(obj) {
  * The only fields we want to broadcast between tabs.
  * Prevents the dice box / Three.js objects from being stringified.
  */
+/** Selects legacy player synchronization fields. @param {object} data @returns {object} */
 window.pickSyncState = function(data) {
     return {
         currentImage:   data.currentImage   ?? null,
@@ -72,6 +77,7 @@ window.defaultState = window.pickSyncState({});
 /**
  * Sync only the whitelisted fields — never the whole `$data`.
  */
+/** Broadcasts the legacy synchronization snapshot. @param {object} state @returns {void} */
 window.syncState = function(state) {
     window.channel.postMessage({
         type: 'sync',
@@ -82,6 +88,7 @@ window.syncState = function(state) {
 /**
  * Parse simple dice notation like "2d6+3", "1d20", "4d6-1"
  */
+/** Parses simple dice notation. @param {string} notation @returns {{count:number,sides:number,mod:number}|null} */
 window.parseNotation = function(notation) {
     if (!notation) return null;
     const m = String(notation).trim().match(/^(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?$/i);

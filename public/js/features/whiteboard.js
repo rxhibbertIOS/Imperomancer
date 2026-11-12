@@ -3,6 +3,7 @@
 // Strokes are stored in normalized coordinates so the same drawing scales to
 // the DM preview and the player display without transferring bitmap data.
 // ============================================================
+/** Creates a resolution-independent collaborative whiteboard feature. @returns {object} Alpine-compatible whiteboard feature. */
 function whiteboardFeature() {
     return {
         whiteboardActive: false,

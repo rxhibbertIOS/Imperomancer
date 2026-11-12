@@ -127,7 +127,7 @@
     font-weight: 500;
     text-transform: none;
     letter-spacing: 0;
-    font-family: ui-monospace, monospace;
+    font-family: var(--font-mono);
 }
 .grid-size-sep {
     opacity: 0.5;
@@ -190,7 +190,7 @@
     padding: 8px 10px;
     margin-bottom: 12px;
     font-size: 11px;
-    font-family: ui-monospace, monospace;
+    font-family: var(--font-mono);
 }
 .grid-readout > div {
     display: flex;

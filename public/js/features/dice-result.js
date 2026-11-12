@@ -29,6 +29,7 @@
  * only fall back to scanning diceResults for the legacy _fallbackRoll path.
  */
 
+/** Normalizes a dice-library result into the modal and history contract. @param {object|null} raw @param {{notation?:string,rollMode?:string,message?:string,tag?:string}} [metadata] @returns {object} */
 function normalizeDiceResult(raw, { notation, rollMode, message, tag } = {}) {
     if (!raw || raw.error) {
         return {
@@ -83,6 +84,7 @@ function normalizeDiceResult(raw, { notation, rollMode, message, tag } = {}) {
     };
 }
 
+/** Detects target/success rules using authoritative result data before notation fallback. @param {object} raw @param {object[]} diceResults @param {string} notation @returns {boolean} */
 function detectHasTarget(raw, diceResults, notation) {
     // 1. Authoritative source: the parsed rule list on each group.
     if (Array.isArray(raw.groups)) {
@@ -102,6 +104,7 @@ function detectHasTarget(raw, diceResults, notation) {
     return /(?:^|[^a-z])(?:t|f|cs|cf)\s*\d/i.test(notation || '');
 }
 
+/** Converts legacy and library dice arrays into one display-safe shape. @param {*} arr @returns {object[]} */
 function normalizeDiceArray(arr) {
     if (!Array.isArray(arr) || !arr.length) return [];
 
@@ -122,7 +125,7 @@ function normalizeDiceArray(arr) {
     });
 }
 
-/** Human-readable audit entry, preserving step/phase when available. */
+/** Human-readable audit entry, preserving step/phase when available. @param {*} entry @returns {string} */
 function formatAuditEntry(entry) {
     if (typeof entry === 'string') return entry;
     if (!entry || typeof entry !== 'object') return String(entry);
@@ -145,7 +148,7 @@ function formatAuditEntry(entry) {
     return text;
 }
 
-/** CSS class bag for a single die tile in the modal. */
+/** CSS class bag for a single die tile in the modal. @param {object} die @returns {Record<string, boolean>} */
 function dieClass(die) {
     return {
         'die-crit-success': die.critical && die.success === true,

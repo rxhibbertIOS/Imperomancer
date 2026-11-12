@@ -1,9 +1,11 @@
+/** Creates persistent, filterable dice-roll history state. @returns {object} Alpine-compatible history feature. */
 window.historyFeature = function() {
     return {
         rollHistory: [],
         historyFilter: 'all',
         historyFilters: ['all', 'public', 'private', 'crits', 'fails'],
 
+        /** Restores saved history, tolerating corrupt local storage. @returns {void} */
         loadHistory() {
             try {
                 this.rollHistory = JSON.parse(localStorage.getItem('dmhub.rollHistory') || '[]');
@@ -12,17 +14,20 @@ window.historyFeature = function() {
             }
         },
 
+        /** Prepends and persists one history entry, retaining the newest 50. @param {object} entry @returns {void} */
         addToHistory(entry) {
             this.rollHistory.unshift(entry);
             if (this.rollHistory.length > 50) this.rollHistory.length = 50;
             localStorage.setItem('dmhub.rollHistory', JSON.stringify(this.rollHistory));
         },
 
+        /** Clears in-memory and persisted history. @returns {void} */
         clearHistory() {
             this.rollHistory = [];
             localStorage.removeItem('dmhub.rollHistory');
         },
 
+        /** Returns rolls matching the active filter. @returns {object[]} */
         filteredHistory() {
             const f = this.historyFilter;
             if (f === 'public')  return this.rollHistory.filter(r => r.rollMode === 'public');
@@ -32,10 +37,12 @@ window.historyFeature = function() {
             return this.rollHistory;
         },
 
+        /** Formats a timestamp for a compact history row. @param {number|string|Date} ts @returns {string} */
         formatTime(ts) {
             return new Date(ts).toTimeString().slice(0, 8);
         },
 
+        /** Formats a complete, accessible roll-history description. @param {object} r @returns {string} */
         formatHistoryLine(r) {
             const priv = r.rollMode === 'public' ? '🔊' : '🔒';
             const name = r.name ? `${r.name}: ` : '';

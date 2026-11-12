@@ -1,5 +1,6 @@
 // js/features/grid.js
 
+/** Creates calibrated grid overlay state, persistence, and canvas rendering controls. @returns {object} Alpine-compatible grid feature. */
 function gridFeature() {
     return {
         // ---- Visibility + type ----

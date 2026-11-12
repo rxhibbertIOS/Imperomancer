@@ -6,6 +6,7 @@
  *   - historyFeature() for addToHistory()
  *   - normalizeDiceResult() from shared/dice-result.js
  */
+/** Creates DM dice controls, rolling state, and result presentation state. @returns {object} Alpine-compatible dice feature. */
 window.diceFeature = function() {
     return {
         MODAL_DISMISS_MS: 30000,

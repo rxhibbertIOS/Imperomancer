@@ -1,15 +1,16 @@
+/** Rolls one uniformly distributed integer die. @param {number} sides Number of faces. @returns {number} A value from 1 through `sides`. */
 window.roll = function(sides) {
     return Math.floor(Math.random() * sides) + 1;
 };
 
-/** Formats a completed dice roll consistently for Chronicle and other UI logs. */
+/** Formats a completed dice roll consistently for Chronicle and other UI logs. @param {string} notation @param {string} message @param {number|string} total @returns {string} */
 window.formatDiceLog = function(notation, message, total) {
     const roll = `${notation || 'Dice'} rolled`;
     const reason = String(message || '').trim();
     return reason ? `${roll} for ${reason}: ${total ?? '?'}` : `${roll}: ${total ?? '?'}`;
 };
 
-/** Parse "2d6+3", "1d20", "4d6-1". Returns null on malformed input. */
+/** Parses simple dice notation. @param {string} notation @returns {{count:number,sides:number,mod:number}|null} Parsed roll or null when malformed. */
 window.parseNotation = function(notation) {
     if (!notation) return null;
     const m = String(notation).trim().match(/^(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?$/i);
@@ -25,6 +26,9 @@ window.parseNotation = function(notation) {
 /**
  * Unified crit/fail detection. Prefers rule-engine flags (cs/fc on dice)
  * and falls back to the classic d20 20/1 heuristic.
+ * @param {string} notation
+ * @param {object} result
+ * @returns {{critical:boolean,fail:boolean}}
  */
 window.detectCritFail = function(notation, result) {
     const dice = result?.diceResults || [];

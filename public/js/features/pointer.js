@@ -2,6 +2,7 @@
 
 // Preset swatches shown in the scrollable picker.
 // Order matters — first entry is used as the initial default.
+/** Curated colors offered by the focus-pointer picker. @type {string[]} */
 const POINTER_COLOR_PRESETS = [
     '#ffcc00', // gold  ← default
     '#ff3b30', // red
@@ -23,8 +24,10 @@ const POINTER_COLOR_PRESETS = [
     '#000000', // black
 ];
 
+/** Default focus-pointer color. @type {string} */
 const DEFAULT_POINTER_COLOR = '#ffcc00';
 
+/** Creates focus-ping state and DM placement controls. @returns {object} Alpine-compatible pointer feature. */
 function pointerFeature() {
     return {
         focusMode: false,
@@ -107,6 +110,7 @@ function pointerFeature() {
 }
 
 // Small helper — turns '#ffcc00' into '255, 204, 0' for rgba() usage in CSS.
+/** Converts a six-digit hex color into an RGB triplet for CSS variables. @param {string} hex @returns {string} */
 function hexToRgbTriplet(hex) {
     if (typeof hex !== 'string') return '255, 204, 0';
     let h = hex.replace('#', '').trim();

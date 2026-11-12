@@ -1,5 +1,6 @@
 // Canvas sits above the map/grid but below application overlays. Strokes use
 // scene coordinates, so revealed areas remain aligned while the map is panned.
+/** Creates the scene-coordinate fog-of-war canvas and editing controls. @returns {object} Alpine-compatible fog feature. */
 function fogFeature() {
     return {
         fogEnabled: false,

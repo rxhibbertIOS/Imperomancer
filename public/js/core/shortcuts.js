@@ -13,6 +13,7 @@
 // SAFETY: any combo that is a bare letter or number without a modifier is
 // rejected at load time. Only Escape, ?, and F1–F12 are allowed standalone.
 
+/** Registers the application-wide declarative keyboard shortcut dispatcher. @module shortcuts */
 (() => {
   const isMac = (() => {
     if (navigator.userAgentData && navigator.userAgentData.platform) {
@@ -68,6 +69,7 @@
 
   // ---------- parsing ----------
 
+  /** Parses a shortcut definition into modifier flags and a key. @param {string} combo @returns {{mods:object,key:string}} */
   function parseCombo(combo) {
     const parts = combo.toLowerCase().split('+').map(s => s.trim()).filter(Boolean);
     const mods = { alt: false, ctrl: false, meta: false, shift: false };
@@ -83,6 +85,7 @@
     return { mods, key };
   }
 
+  /** Rejects unsafe unmodified printable-key shortcuts. @param {string} combo @param {{mods:object,key:string}} parsed @returns {boolean} */
   function validateCombo(combo, parsed) {
     const hasMod = parsed.mods.alt || parsed.mods.ctrl || parsed.mods.meta || parsed.mods.shift;
     if (hasMod) return true;
@@ -93,6 +96,7 @@
 
   // ---------- matching ----------
 
+  /** Matches a key across layouts, using KeyboardEvent.code as a fallback. @param {string} expected @param {KeyboardEvent} e @returns {boolean} */
   function keyMatches(expected, e) {
     if (e.key && e.key.toLowerCase() === expected) return true;
     // Fallback via e.code — needed on macOS where Alt+letter can produce composed keys
@@ -104,6 +108,7 @@
     return false;
   }
 
+  /** Tests whether an event exactly matches a parsed shortcut. @param {{mods:object,key:string}} parsed @param {KeyboardEvent} e @returns {boolean} */
   function matches(parsed, e) {
     if (!keyMatches(parsed.key, e)) return false;
     if (parsed.mods.alt   !== e.altKey)   return false;
@@ -113,6 +118,7 @@
     return true;
   }
 
+  /** Determines whether the event target accepts ordinary text input. @param {Element|null} el @returns {boolean} */
   function isEditable(el) {
     if (!el) return false;
     const tag = el.tagName;
@@ -126,6 +132,7 @@
 
   // ---------- display formatting ----------
 
+  /** Converts a normalized key to a display label. @param {string} key @returns {string} */
   function prettyKey(key) {
     const named = {
       arrowright: '→', arrowleft: '←', arrowup: '↑', arrowdown: '↓',
@@ -138,6 +145,7 @@
     return key.charAt(0).toUpperCase() + key.slice(1);
   }
 
+  /** Formats a parsed shortcut for the shortcut glossary. @param {{mods:object,key:string}} parsed @returns {string} */
   function formatCombo(parsed) {
     const parts = [];
     if (parsed.mods.ctrl)  parts.push(MOD_LABEL);
@@ -150,6 +158,7 @@
 
   // ---------- factory ----------
 
+  /** Binds configured shortcut actions to an Alpine component. @param {object} component @returns {{attach:function():void,detach:function():void,list:function():object[],isMac:boolean}} */
   function createShortcuts(component) {
     const bindings = Object.entries(SHORTCUT_DEFS)
       .map(([combo, def]) => {
@@ -163,6 +172,7 @@
 
     const warned = new Set();
 
+    /** Reads the component's dialog-open contract in either supported form. @returns {boolean} */
     function componentDialogOpen() {
       const c = component;
       if (typeof c.isDialogOpen === 'function') return c.isDialogOpen();
@@ -170,6 +180,7 @@
       return false;
     }
 
+    /** Routes one keyboard event to its configured component action. @param {KeyboardEvent} e @returns {void} */
     function onKeydown(e) {
       if (e.isComposing || e.key === 'Dead' || e.key === 'Unidentified') return;
       if (isEditable(e.target)) return;
@@ -206,9 +217,12 @@
       }
     }
 
+    /** Starts capturing keyboard events. @returns {void} */
     function attach() { document.addEventListener('keydown', onKeydown, true); }
+    /** Stops capturing keyboard events. @returns {void} */
     function detach() { document.removeEventListener('keydown', onKeydown, true); }
 
+    /** Returns user-facing shortcut definitions for the glossary. @returns {object[]} */
     function list() {
       return bindings
         .filter(b => b.description)

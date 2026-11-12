@@ -2,6 +2,7 @@
 // PLAYER COMPOSITION ROOT
 // ============================================================
 
+/** Creates the player Alpine application and its isolated display transport. @returns {object} Player application state and actions. */
 function playerApp() {
     const channel = window.channel;
 

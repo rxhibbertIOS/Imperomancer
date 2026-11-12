@@ -6,6 +6,7 @@
  * Handles the small amount of interaction required by the
  * marketing page. The actual DM application remains completely
  * separate.
+ * @module landing
  */
 
 
