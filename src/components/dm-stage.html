@@ -10,9 +10,9 @@
         :style="stageInnerStyle()"
         data-stage-inner
         @mousedown="handleStageMouseDown($event)"
-        @mousemove="handleStageMouseMove($event)"
-        @mouseup="handleStageMouseUp($event)"
-        @mouseleave="handleStageMouseUp($event)"
+        @mousemove="fogPointerMove($event); handleStageMouseMove($event)"
+        @mouseup="fogPointerEnd(); handleStageMouseUp($event)"
+        @mouseleave="hideFogCursor(); fogPointerEnd(); handleStageMouseUp($event)"
         @wheel="onWheel($event)"
         @click="handleFocusClick($event)"
         @touchstart.passive="beginShapeLongPress($event)"
@@ -34,6 +34,7 @@
             </template>
 
             <canvas class="grid-overlay" data-grid-canvas aria-hidden="true"></canvas>
+            <canvas class="fog-overlay" data-fog-canvas aria-hidden="true"></canvas>
 
             <!-- Overlays -->
             <div class="overlay-layer">

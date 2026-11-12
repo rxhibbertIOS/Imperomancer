@@ -66,6 +66,9 @@ window.pickSyncState = function(data, opts = {}) {
         },
 
         gridVisible:      source.gridVisible      === true,
+        fogEnabled: source.fogEnabled === true,
+        fogColor: source.fogColor || '#3e434e',
+        fogStrokes: source.fogStrokes || [],
         gridType:         source.gridType         ?? 'square',
         gridShowLabels:   source.gridShowLabels   === true,
         gridLabelEvery:   source.gridLabelEvery   ?? 5,

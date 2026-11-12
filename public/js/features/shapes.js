@@ -218,6 +218,7 @@ function shapesFeature() {
         // ============================================================
         handleStageMouseDown(ev) {
             if (this.focusMode) return this.handleFocusClick(ev);
+            if (this.fogPointerStart?.(ev)) return;
             if (this.effectSelectMode) return;
             if (this.pendingShapeKind) return this.commitShapeDrag(ev);
             return this.startPan(ev);

@@ -75,6 +75,7 @@ window.sceneFeature = function() {
                 'gridShowLabels', 'gridLabelEvery', 'gridOpacity', 'scenePxPerCell',
                 'sceneGridOriginX', 'sceneGridOriginY', 'locked',
                 'effects',
+                'fogEnabled', 'fogColor', 'fogStrokes',
             ].forEach(property => {
                 this.$watch(property, () => this.saveSelectedScene(true));
             });
@@ -103,6 +104,9 @@ window.sceneFeature = function() {
                 sceneGridOriginX: this.sceneGridOriginX,
                 sceneGridOriginY: this.sceneGridOriginY,
                 locked: this.locked,
+                fogEnabled: this.fogEnabled,
+                fogColor: this.fogColor || '#3e434e',
+                fogStrokes: this.fogStrokes || [],
                 effects: this.effects || [],
             };
         },
@@ -235,13 +239,14 @@ window.sceneFeature = function() {
             }
             this.ensureScenePlayback();
             this.drawGrid?.();
+            this.drawFog?.();
         },
 
         captureSceneSettingsFrom(scene) {
             const {
                 currentImage, mediaType, sceneMediaSource, view, gridVisible, gridType,
                 gridShowLabels, gridLabelEvery, gridOpacity, scenePxPerCell,
-                sceneGridOriginX, sceneGridOriginY, locked, effects,
+                sceneGridOriginX, sceneGridOriginY, locked, effects, fogEnabled, fogColor, fogStrokes,
             } = scene;
             return {
                 currentImage: currentImage ?? null,
@@ -258,6 +263,7 @@ window.sceneFeature = function() {
                 sceneGridOriginY: sceneGridOriginY ?? 0,
                 locked: locked === true,
                 effects: effects || [],
+                fogEnabled: fogEnabled === true, fogColor: fogColor || '#3e434e', fogStrokes: fogStrokes || [],
             };
         },
 
@@ -689,6 +695,7 @@ window.sceneFeature = function() {
             window.addEventListener('resize', () => {
                 if (this.clampView) this.clampView();
                 if (this.drawGrid) this.drawGrid();
+                if (this.drawFog) this.drawFog();
             });
         },
 

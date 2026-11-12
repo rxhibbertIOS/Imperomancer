@@ -12,6 +12,7 @@ function playerApp() {
         // ---- Mixins ----
         ...initiativeFeature(), 
         ...gridFeature(),
+        ...fogFeature(),
         ...sceneFeature(), 
         ...pointerFeature(),
         ...shapesFeature(),
@@ -45,6 +46,7 @@ function playerApp() {
             this.connectViewPort();
             this.$nextTick(() => this.initDiceBox());
             this.initGrid();
+            this.initFog();
             this.initStageObserver();
 
             this.$nextTick(() => {
@@ -144,6 +146,7 @@ function playerApp() {
         destroy() {
             this.stopViewPortConnection();
             this._displayResizeObserver?.disconnect();
+            this._fogResizeObserver?.disconnect();
             if (this._displayResizeFallback) window.removeEventListener('resize', this._displayResizeFallback);
             if (this._viewAnimationRaf !== null) cancelAnimationFrame(this._viewAnimationRaf);
             clearTimeout(this._shapeLongPressTimer);
@@ -190,6 +193,9 @@ function playerApp() {
             };
 
             this.gridVisible      = s.gridVisible      === true;
+            this.fogEnabled       = s.fogEnabled === true;
+            this.fogColor         = s.fogColor || '#3e434e';
+            this.fogStrokes       = s.fogStrokes || [];
             this.gridType         = s.gridType         ?? 'square';
             this.gridShowLabels   = s.gridShowLabels   === true;
             this.gridLabelEvery   = s.gridLabelEvery   ?? 5;
@@ -205,6 +211,7 @@ function playerApp() {
             this.flashShapes = s.flashShapes || [];
             this.tableShapePreview = s.shapePreview || null;
             this.locked = s.locked === true;
+            this.$nextTick?.(() => this.drawFog?.());
 
             if (typeof s.tablePpi === 'number') this.tablePpi = s.tablePpi;
             if (s.tableDiagonal   != null) this.tableDiagonal   = s.tableDiagonal;
@@ -230,6 +237,7 @@ function playerApp() {
             if (!view || typeof view.sceneW !== 'number') return;
             this.view = { cx: view.cx, cy: view.cy, sceneW: view.sceneW };
             this.drawGrid?.();
+            this.drawFog?.();
         },
 
         _queueView(view) {

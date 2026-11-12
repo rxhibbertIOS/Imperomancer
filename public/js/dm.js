@@ -14,6 +14,7 @@ function dmApp() {
         ...statusFeature(),
         ...diceFeature(),
         ...gridFeature(),
+        ...fogFeature(),
         ...pointerFeature(),
         ...shapesFeature(),
 
@@ -41,6 +42,7 @@ function dmApp() {
             if (!this.initiativeRows.length) this.addInitiativeRow();
             this.initDiceNotationBuilder();
             this.initGrid();
+            this.initFog();
             this.initScenes();
             this.initResizeClamp();
             this.initStageObserver();
@@ -115,6 +117,7 @@ function dmApp() {
             clearInterval(this._playerHeartbeatTimer);
             clearTimeout(this._playerConnectTimer);
             this._stageRO?.disconnect();
+            this._fogResizeObserver?.disconnect();
             if (this._gridBeforeUnload) window.removeEventListener('beforeunload', this._gridBeforeUnload);
             clearTimeout(this._shapeLongPressTimer);
         },

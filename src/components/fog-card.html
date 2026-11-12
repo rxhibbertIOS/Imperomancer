@@ -1,0 +1,64 @@
+<!-- Fog of War Card -->
+<section class="card" aria-labelledby="fog-card-title">
+    <header class="card-head">
+        <h3 id="fog-card-title" class="card-title">
+            <button type="button" class="card-toggle"
+                    @click="toggleCard('fog')"
+                    :aria-expanded="openCard === 'fog'"
+                    aria-controls="fog-card-body">
+                <img class="app-icon" src="../assets/icons/fog.svg" alt="" aria-hidden="true">
+                <span>Fog of war</span>
+                <span class="card-head-right">
+                    <span class="chip chip-gold" x-show="fogEnabled">Active</span>
+                    <span class="accordion-arrow" aria-hidden="true" :class="{ open: openCard === 'fog' }">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </span>
+                </span>
+            </button>
+        </h3>
+    </header>
+
+    <div id="fog-card-body" class="card-body" x-show="openCard === 'fog'" x-transition.opacity>
+        <label class="switch-row">
+            <input type="checkbox" role="switch" x-model="fogEnabled" @change="setFogEditing(fogEnabled); drawFog(); saveSelectedScene(true, true); window.syncState($data)">
+            <span>Enable fog</span>
+        </label>
+
+        <button type="button" class="btn btn-ghost btn-sm" x-show="fogEnabled"
+            :aria-pressed="fogEditing" @click="setFogEditing(!fogEditing)"
+            x-text="fogEditing ? 'Done editing fog' : 'Edit fog on map'"></button>
+
+        <div class="field-label" id="fog-mode-label">Tool</div>
+        <div class="chips" role="group" aria-labelledby="fog-mode-label">
+            <button type="button" class="chip" :class="{ 'chip-active': fogTool === 'reveal' }" :aria-pressed="fogTool === 'reveal'" @click="fogTool = 'reveal'; setFogEditing(true)">
+                <img class="app-icon" src="../assets/icons/eraser.svg" alt="" aria-hidden="true"> Reveal
+            </button>
+            <button type="button" class="chip" :class="{ 'chip-active': fogTool === 'paint' }" :aria-pressed="fogTool === 'paint'" @click="fogTool = 'paint'; setFogEditing(true)">
+                <img class="app-icon" src="../assets/icons/brush.svg" alt="" aria-hidden="true"> Repaint
+            </button>
+        </div>
+
+        <div class="field-label" id="fog-brush-label">Brush shape</div>
+        <div class="chips" role="group" aria-labelledby="fog-brush-label">
+            <button type="button" class="chip" :class="{ 'chip-active': fogBrush === 'round' }" :aria-pressed="fogBrush === 'round'" @click="fogBrush = 'round'">
+                <img class="app-icon" src="../assets/icons/circle-dashed.svg" alt="" aria-hidden="true"> Round
+            </button>
+            <button type="button" class="chip" :class="{ 'chip-active': fogBrush === 'square' }" :aria-pressed="fogBrush === 'square'" @click="fogBrush = 'square'">
+                <img class="app-icon" src="../assets/icons/square-dashed.svg" alt="" aria-hidden="true"> Square
+            </button>
+        </div>
+
+        <label class="field-label grid-size-label" for="fog-brush-size">
+            <span>Brush size</span><span class="grid-size-readout" x-text="fogBrushCells + ' cells'"></span>
+        </label>
+        <input id="fog-brush-size" type="range" min=".5" max="8" step=".5" class="grid-slider" x-model.number="fogBrushCells">
+
+        <label class="field-label" for="fog-colour">Fog colour</label>
+        <input id="fog-colour" type="color" x-model="fogColor" @input="drawFog(); saveSelectedScene(true, true); window.syncState($data)">
+
+        <div class="btn-row">
+            <button type="button" class="btn btn-ghost btn-sm" @click="clearFog()">Remove all</button>
+            <button type="button" class="btn btn-ghost btn-sm" @click="resetFog()">Reapply fog</button>
+        </div>
+    </div>
+</section>
