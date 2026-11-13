@@ -13,6 +13,7 @@ The project is built around one simple promise: **the DM should be able to prepa
 - [Project structure](#project-structure)
 - [Run locally](#run-locally)
 - [Testing and quality](#testing-and-quality)
+- [Adding or changing a feature](#adding-or-changing-a-feature)
 - [Documentation map](#documentation-map)
 - [Technology and design principles](#technology-and-design-principles)
 
@@ -130,6 +131,7 @@ For the more complete operating sequence, see the [knowledge-base overview](docs
 ```text
 .
 ├── index.html                 Application shell and mode selection
+├── landing.html               Standalone product and feature-tour page
 ├── src/components/            Reusable HTML components included at build time
 ├── public/
 │   ├── js/
@@ -146,6 +148,8 @@ For the more complete operating sequence, see the [knowledge-base overview](docs
 ```
 
 The JavaScript is deliberately organized as browser globals and Alpine-compatible feature factories rather than a compiled application framework. `dm.js` and `player.js` compose the feature factories into their respective application roots.
+
+The visual product tour is available locally at [`landing.html`](landing.html). It uses the committed captures in `docs/assets/media/`, so a current marketing preview always shows real, reproducible product states rather than placeholder imagery.
 
 ## Run locally
 
@@ -204,12 +208,17 @@ The browser suite starts a local Vite server automatically. It covers the live D
 
 For test conventions, browser artifact inspection, debugging guidance, and instructions for adding coverage, read [Testing Imperomancer](docs/testing.md).
 
+## Adding or changing a feature
+
+Never treat a feature as only a JavaScript change. It needs a deliberate DM/Player visibility decision, maintainable JSDoc, end-user guidance, tests, and—when seeing the feature helps—a reproducible documentation capture. The step-by-step contributor guide, including copyable commands and recovery steps for common failures, is [Adding a feature from idea to release](docs/development-workflow.md).
+
 ## Documentation map
 
 | Document | Audience | What it covers |
 | --- | --- | --- |
 | [Knowledge base](docs/knowledge-base/README.md) | DMs and future website visitors | Feature guides and practical table workflows. |
 | [Testing guide](docs/testing.md) | Contributors | Node tests, Playwright, traces, debugging, and test design. |
+| [Feature development workflow](docs/development-workflow.md) | New contributors and AI assistants | A no-assumptions checklist for implementing, documenting, testing, capturing, reviewing, and validating a feature. |
 | [Documentation media](docs/media/README.md) | Contributors and writers | Reproducible WebP/WebM capture pipeline, fixtures, commands, and review rules. |
 | [Extending media captures](docs/media/extending.md) | Contributors | Recipe contract, new-feature workflow, WebM recording, and validation. |
 | [Media gallery](docs/media-gallery.md) | Writers and future website builders | Stable screenshot and video references produced by the capture pipeline. |

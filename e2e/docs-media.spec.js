@@ -14,6 +14,10 @@ test.describe('documentation media @docs-media', () => {
 
     for (const capture of documentationCaptures) {
         test(capture.title, async ({ browser }) => {
+            // Paired end-to-end recordings deliberately include readable holds
+            // before and after each action and therefore outlive the normal
+            // screenshot-recipe timeout.
+            test.setTimeout(180_000);
             await capture.run({ browser });
         });
     }

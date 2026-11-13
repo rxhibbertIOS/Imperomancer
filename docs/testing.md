@@ -7,6 +7,8 @@ Imperomancer has two complementary automated test layers:
 
 Run both layers before submitting a change that affects JavaScript, CSS layout, synchronization, or scene rendering.
 
+If you are new to the repository, read the [no-assumptions feature development guide](development-workflow.md) first. It shows where testing fits alongside implementation, end-user documentation, and repeatable WebP/WebM capture work.
+
 ## Quick reference
 
 | Command | Purpose |
@@ -15,6 +17,8 @@ Run both layers before submitting a change that affects JavaScript, CSS layout, 
 | `npm run test:watch` | Re-run Node tests as test or source files change. |
 | `npm run test:e2e` | Run the Playwright Chromium browser suite. |
 | `npm run docs:media` | Generate the committed WebP/WebM documentation assets. |
+| `npm run docs:media:playlists` | Generate all short, numbered paired DM/Player media chapters. |
+| `npm run docs:media:feature-steps` | Generate numbered paired chapters for non-Scene features; filter with `DOCS_MEDIA_STEP_FEATURES=dice`. |
 | `npm run build` | Verify the production build and included component output. |
 
 The normal pre-handoff check is:

@@ -10,6 +10,9 @@ import { scenesCapture } from './captures/scenes.js';
 import { sessionToolsCapture } from './captures/session-tools.js';
 import { shapesCapture } from './captures/shapes.js';
 import { whiteboardCapture } from './captures/whiteboard.js';
+import { e2eWorkflowsCapture } from './captures/e2e-workflows.js';
+import { sceneStepsCapture } from './captures/scene-steps.js';
+import { featureStepsCapture } from './captures/feature-steps.js';
 
 /**
  * One executable documentation-media recipe.
@@ -40,6 +43,9 @@ export const documentationCaptures = Object.freeze([
     sessionToolsCapture,
     shapesCapture,
     motionCapture,
+    e2eWorkflowsCapture,
+    sceneStepsCapture,
+    featureStepsCapture,
 ]);
 
 /**

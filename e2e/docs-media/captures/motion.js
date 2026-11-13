@@ -51,13 +51,23 @@ export const motionCapture = {
             const destination = await imageFixtureDataUrl('Arcane_Cathedral.png');
             await page.evaluate(async ({ source }) => {
                 const state = Alpine.$data(document.querySelector('#playerApp'));
-                state.currentImage = source;
-                state.mediaType = 'image';
-                await new Promise(resolve => state.$nextTick(resolve));
-                const image = document.querySelector('#playerApp [data-grid-scene]');
-                if (!image.complete) await new Promise(resolve => image.addEventListener('load', resolve, { once: true }));
-                state.onSceneMediaReady({ currentTarget: image });
-                state.handleSceneTransition('fade');
+                state._onSync({
+                    revision: 1,
+                    scenePublished: true,
+                    transition: 'fade',
+                    currentImage: source,
+                    mediaType: 'image',
+                    view: { ...state.view },
+                    gridVisible: true,
+                    gridType: 'square',
+                    scenePxPerCell: 100,
+                    fogEnabled: true,
+                    fogStrokes: [{ mode: 'reveal', shape: 'round', size: 3, x: 850, y: 470 }],
+                    whiteboardActive: false,
+                    whiteboardStrokes: [],
+                    combatants: [],
+                    edges: {},
+                });
             }, { source: destination });
             await page.waitForTimeout(POST_ACTION_MS);
             await saveMotion(context, page, 'player-scene-fade-transition.webm');

@@ -11,7 +11,12 @@
     "test:watch": "node --test --watch test/**/*.test.js",
     "test:e2e": "playwright test",
     "docs:media": "CAPTURE_DOCS_MEDIA=true playwright test --grep @docs-media --reporter=list",
-    "docs:media:motion": "CAPTURE_DOCS_MEDIA=true playwright test --grep \"motion clips\" --reporter=list"
+    "docs:media:motion": "CAPTURE_DOCS_MEDIA=true playwright test --grep \"motion clips\" --reporter=list",
+    "docs:media:e2e": "CAPTURE_DOCS_MEDIA=true playwright test --grep \"end-to-end workflow\" --reporter=list",
+    "docs:media:e2e:flow": "CAPTURE_DOCS_MEDIA=true playwright test --grep \"end-to-end workflow\" --reporter=list",
+    "docs:media:steps": "CAPTURE_DOCS_MEDIA=true playwright test --grep \"numbered scene workflow\" --reporter=list",
+    "docs:media:feature-steps": "CAPTURE_DOCS_MEDIA=true playwright test --grep \"numbered feature workflow\" --reporter=list",
+    "docs:media:playlists": "CAPTURE_DOCS_MEDIA=true playwright test --grep \"numbered (scene|feature) workflow\" --reporter=list"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",

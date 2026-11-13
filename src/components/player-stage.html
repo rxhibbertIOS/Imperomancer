@@ -2,6 +2,11 @@
 <div id="playerApp" x-data="playerApp" x-cloak>
     <div class="player-shell">
         <div class="scene scene-full" data-stage :class="{ 'dice-active': diceRolling || showResultModal }">
+            <!-- The curtain is above every scene-bound layer so a fade swaps media,
+                 grid, fog, whiteboard, and effects as one hidden composition. -->
+            <div class="scene-transition-curtain"
+                :class="{ active: sceneTransitionPhase === 'black' }"
+                aria-hidden="true"></div>
             <div class="dice-backdrop" aria-hidden="true"></div>
             <template x-if="showCalibrationSquare">
                 <div class="calibration-reference"

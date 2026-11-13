@@ -55,6 +55,46 @@ test('player accepts a published state and clamps stale viewport packets by revi
     await expect.poll(() => page.evaluate(() => Alpine.$data(document.querySelector('#playerApp')).currentImage)).toBe(portraitMap);
 });
 
+test('player fades the old composition to black before applying a published scene and its overlays', async ({ page }) => {
+    const nextScene = `data:image/svg+xml,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#692f77"/>
+</svg>` )}`;
+    await page.goto('/?mode=player');
+    await expect(page.locator('#playerApp')).toBeVisible();
+    await page.evaluate(({ oldScene }) => {
+        const state = Alpine.$data(document.querySelector('#playerApp'));
+        state._onSync({
+            revision: 10, scenePublished: true, transition: 'none', currentImage: oldScene,
+            mediaType: 'image', view: { cx: 500, cy: 1000, sceneW: 2666.6666667 },
+            gridVisible: false, fogEnabled: false, fogStrokes: [], whiteboardActive: false,
+            whiteboardStrokes: [], combatants: [], edges: {},
+        });
+    }, { oldScene: portraitMap });
+    await expect(page.locator('#playerApp [data-grid-scene]')).toHaveAttribute('src', portraitMap);
+
+    await page.evaluate(({ source }) => {
+        const state = Alpine.$data(document.querySelector('#playerApp'));
+        state._onSync({
+            revision: 11, scenePublished: true, transition: 'fade', currentImage: source,
+            mediaType: 'image', view: { cx: 800, cy: 450, sceneW: 1600 },
+            gridVisible: true, gridType: 'square', scenePxPerCell: 100,
+            fogEnabled: true, fogStrokes: [{ mode: 'reveal', shape: 'round', size: 2, x: 800, y: 450 }],
+            whiteboardActive: false, whiteboardStrokes: [], combatants: [], edges: {},
+        });
+    }, { source: nextScene });
+
+    const curtain = page.locator('#playerApp .scene-transition-curtain');
+    await expect(curtain).toHaveClass(/active/);
+    await expect(page.locator('#playerApp [data-grid-scene]')).toHaveAttribute('src', portraitMap);
+    await expect.poll(() => page.evaluate(() => Alpine.$data(document.querySelector('#playerApp')).currentImage)).toBe(nextScene);
+    await expect.poll(() => page.evaluate(() => {
+        const state = Alpine.$data(document.querySelector('#playerApp'));
+        return state.gridVisible && state.fogEnabled;
+    })).toBe(true);
+    await expect(curtain).not.toHaveClass(/active/);
+});
+
 test('DM publishes a portrait scene to a real player tab without clipping it', async ({ browser }) => {
     const context = await browser.newContext();
     const dm = await context.newPage();

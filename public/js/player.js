@@ -37,6 +37,9 @@ function playerApp() {
         _viewPortManualDisconnect: false,
         _lastViewPingAt: 0,
         _lastStateRevision: 0,
+        sceneTransitionPhase: 'idle',
+        _sceneTransitionTimer: null,
+        _pendingSceneSync: null,
 
         init() {
             if (window.MODE !== 'player') {
@@ -153,6 +156,9 @@ function playerApp() {
             this._whiteboardResizeObserver?.disconnect();
             if (this._displayResizeFallback) window.removeEventListener('resize', this._displayResizeFallback);
             if (this._viewAnimationRaf !== null) cancelAnimationFrame(this._viewAnimationRaf);
+            clearTimeout(this._sceneTransitionTimer);
+            this._sceneTransitionTimer = null;
+            this._pendingSceneSync = null;
             clearTimeout(this._shapeLongPressTimer);
         },
 
@@ -165,6 +171,24 @@ function playerApp() {
         _onSync(s) {
             if (Number.isFinite(s?.revision) && s.revision < this._lastStateRevision) return;
             if (Number.isFinite(s?.revision)) this._lastStateRevision = s.revision;
+
+            if (this._shouldBlackoutBeforeSceneSwap(s)) {
+                this._queueFadeSceneSync(s);
+                return;
+            }
+
+            this._applySync(s);
+        },
+
+        /**
+         * Applies a synchronized snapshot after any required scene curtain has
+         * become opaque. Keeping this separate prevents new scene layers from
+         * appearing above old media during a fade.
+         *
+         * @param {object} s Serializable Player state received from the DM.
+         * @returns {void}
+         */
+        _applySync(s) {
             const prevTurn = this.currentTurn;
 
             if (Object.prototype.hasOwnProperty.call(s, 'currentImage')) {
@@ -229,7 +253,7 @@ function playerApp() {
             this.showCalibrationSquare = s.showCalibrationSquare === true;
 
             this.transition = s.transition;
-            if (s.scenePublished) {
+            if (s.scenePublished && s.transition !== 'fade') {
                 this.$nextTick(async () => {
                     const videoReady = await this.ensureScenePlayback();
                     if (videoReady) this.handleSceneTransition(this.transition);
@@ -239,6 +263,82 @@ function playerApp() {
             if (prevTurn !== this.currentTurn) {
                 this._animateCarousel();
             }
+        },
+
+        /**
+         * Returns whether a published fade should preserve an existing scene
+         * until the blackout is complete. First publication has no old scene to
+         * protect and therefore remains immediate.
+         *
+         * @param {object} state Serializable Player state received from the DM.
+         * @returns {boolean} True when the scene payload must wait behind black.
+         */
+        _shouldBlackoutBeforeSceneSwap(state) {
+            return state?.scenePublished === true &&
+                state.transition === 'fade' &&
+                Boolean(this.currentImage) &&
+                Boolean(state.currentImage) &&
+                state.currentImage !== this.currentImage;
+        },
+
+        /**
+         * Fades the complete existing Player composition to black, swaps the
+         * synchronized state only while concealed, then lets the curtain reveal
+         * the new media and its scene-specific overlays together.
+         *
+         * @param {object} state Serializable Player state received from the DM.
+         * @returns {void}
+         */
+        _queueFadeSceneSync(state) {
+            this._pendingSceneSync = state;
+            clearTimeout(this._sceneTransitionTimer);
+            this.sceneTransitionPhase = 'black';
+
+            this._sceneTransitionTimer = setTimeout(() => {
+                const pendingState = this._pendingSceneSync;
+                this._pendingSceneSync = null;
+                this._sceneTransitionTimer = null;
+                if (!pendingState) return;
+
+                this._applySync(pendingState);
+                this.$nextTick(async () => {
+                    await this._waitForSceneComposition();
+                    this.sceneTransitionPhase = 'idle';
+                });
+            }, 420);
+        },
+
+        /**
+         * Waits for the newly mounted media and canvas layers to have an
+         * opportunity to render before lifting the transition curtain.
+         *
+         * @returns {Promise<void>} Resolves after media readiness or a safe fallback.
+         */
+        async _waitForSceneComposition() {
+            const media = this.getSceneEl?.();
+            if (media) {
+                const ready = this.mediaType === 'video'
+                    ? media.readyState >= 2
+                    : media.complete && media.naturalWidth > 0;
+                if (!ready) {
+                    await new Promise(resolve => {
+                        const finish = () => resolve();
+                        const timeout = setTimeout(finish, 1500);
+                        const complete = () => {
+                            clearTimeout(timeout);
+                            finish();
+                        };
+                        media.addEventListener?.(this.mediaType === 'video' ? 'loadeddata' : 'load', complete, { once: true });
+                        media.addEventListener?.('error', complete, { once: true });
+                    });
+                }
+            }
+
+            await this.ensureScenePlayback?.();
+            this.drawGrid?.();
+            this.drawFog?.();
+            this.drawWhiteboard?.();
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         },
 
         _onView(view) {

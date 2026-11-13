@@ -1,279 +1,106 @@
 "use strict";
 
 /**
- * Astral Axiom landing page
+ * Lightweight presentation behavior for the standalone Imperomancer marketing page.
+ * The application itself has no dependency on this script.
  *
- * Handles the small amount of interaction required by the
- * marketing page. The actual DM application remains completely
- * separate.
  * @module landing
  */
 
-
-/* ================================================================
-   SCROLL REVEALS
-================================================================ */
+/** @type {MediaQueryList} */
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 /**
- * Elements that should subtly appear as they enter the viewport.
+ * Fades presentational sections in once they enter the viewport. Content remains
+ * visible without JavaScript, and reduced-motion users receive no reveal animation.
+ *
+ * @returns {void}
  */
-const revealElements = document.querySelectorAll(
-    ".screen-card, .feature, .dice-demo, .cta"
-);
+function initialiseScrollReveals() {
+    const elements = document.querySelectorAll(".reveal");
 
+    if (!elements.length || reducedMotionQuery.matches || typeof IntersectionObserver !== "function") {
+        return;
+    }
 
-/**
- * IntersectionObserver allows us to keep the landing page
- * lightweight without pulling in an animation framework.
- */
-const revealObserver = new IntersectionObserver(
-    entries => {
-
-        entries.forEach(entry => {
-
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
             if (!entry.isIntersecting) {
                 return;
             }
 
             entry.target.animate(
                 [
-                    {
-                        opacity: 0,
-                        transform: "translateY(22px)"
-                    },
-                    {
-                        opacity: 1,
-                        transform: "translateY(0)"
-                    }
+                    { opacity: 0, transform: "translateY(20px)" },
+                    { opacity: 1, transform: "translateY(0)" },
                 ],
-                {
-                    duration: 650,
-                    easing: "cubic-bezier(.22,1,.36,1)",
-                    fill: "forwards"
-                }
+                { duration: 700, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "both" },
             );
-
-            revealObserver.unobserve(entry.target);
+            observer.unobserve(entry.target);
         });
+    }, { threshold: 0.12 });
 
-    },
-    {
-        threshold: 0.12
-    }
-);
-
+    elements.forEach((element) => observer.observe(element));
+}
 
 /**
- * Prepare the elements and start observing them.
- */
-revealElements.forEach(element => {
-
-    element.style.opacity = "0";
-
-    revealObserver.observe(element);
-});
-
-
-/* ================================================================
-   SMOOTH ANCHOR NAVIGATION
-================================================================ */
-
-/**
- * Keep anchor navigation smooth even on browsers where the
- * CSS scroll-behaviour property is not honoured.
- */
-document.querySelectorAll(
-    'a[href^="#"]'
-).forEach(link => {
-
-    link.addEventListener("click", event => {
-
-        const targetId = link.getAttribute("href");
-
-        if (!targetId || targetId === "#") {
-            return;
-        }
-
-        const target = document.querySelector(targetId);
-
-        if (!target) {
-            return;
-        }
-
-        event.preventDefault();
-
-        target.scrollIntoView({
-            behaviour: "smooth",
-            block: "start"
-        });
-    });
-});
-
-
-/* ================================================================
-   PRODUCT PREVIEW MOTION
-================================================================ */
-
-/**
- * Very subtle movement on the hero product preview.
+ * Adds contrast to the navigation after it leaves the transparent hero area.
  *
- * This is intentionally restrained. The landing page should feel
- * like a premium application rather than a flashy game website.
+ * @returns {void}
  */
-const productWindow = document.querySelector(
-    ".product-window"
-);
+function initialiseNavigation() {
+    const header = document.querySelector("[data-site-header]");
 
-if (productWindow) {
-
-    productWindow.addEventListener(
-        "pointermove",
-        event => {
-
-            const rect =
-                productWindow.getBoundingClientRect();
-
-            const x =
-                (event.clientX - rect.left) / rect.width;
-
-            const y =
-                (event.clientY - rect.top) / rect.height;
-
-            const rotateY =
-                (x - 0.5) * 2;
-
-            const rotateX =
-                (0.5 - y) * 2;
-
-            productWindow.style.transform =
-                `perspective(1400px)
-                 rotateX(${rotateX}deg)
-                 rotateY(${rotateY}deg)`;
-        }
-    );
-
-
-    productWindow.addEventListener(
-        "pointerleave",
-        () => {
-
-            productWindow.style.transform =
-                "perspective(1400px) rotateX(0deg) rotateY(0deg)";
-        }
-    );
-
-}
-
-/* ================================================================
-   INTRO — scroll-driven reveal
-================================================================ */
-
-const intro      = document.querySelector(".intro");
-const introLogo  = document.querySelector(".intro-logo");
-const introCue   = document.querySelector(".intro-cue");
-const introMedia = document.querySelector(".intro-media");
-
-/**
- * Scroll-linked parallax is exactly the kind of motion that
- * triggers discomfort, so opt out entirely rather than
- * softening it.
- */
-const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-).matches;
-
-if (intro && introLogo && !prefersReducedMotion) {
-
-    intro.classList.add("is-live");
-
-    let introQueued = false;
-
-    const updateIntro = () => {
-
-        introQueued = false;
-
-        const rect = intro.getBoundingClientRect();
-        const runway = rect.height - window.innerHeight;
-
-        if (runway <= 0) {
-            return;
-        }
-
-        const progress = Math.min(
-            Math.max(-rect.top / runway, 0),
-            1
-        );
-
-        // Logo: gone by 70% of the runway, drifting up and out
-        const logoFade = Math.min(progress / 0.7, 1);
-
-        introLogo.style.opacity = String(1 - logoFade);
-
-        introLogo.style.transform =
-            `translate3d(0, ${-26 * logoFade}%, 0)
-             scale(${1 + 0.10 * logoFade})`;
-
-        // Cue: out of the way almost immediately
-        if (introCue) {
-            introCue.style.opacity =
-                String(Math.max(1 - progress / 0.16, 0));
-        }
-
-        // Media bed: fades up as the logo leaves
-        if (introMedia) {
-            introMedia.style.opacity =
-                String(Math.max((progress - 0.3) / 0.5, 0));
-        }
-    };
-
-    const queueIntro = () => {
-
-        if (introQueued) {
-            return;
-        }
-
-        introQueued = true;
-
-        requestAnimationFrame(updateIntro);
-    };
-
-    window.addEventListener("scroll", queueIntro, { passive: true });
-    window.addEventListener("resize", queueIntro, { passive: true });
-
-    updateIntro();
-}
-
-/* ================================================================
-   NAVIGATION SHADOW
-================================================================ */
-
-/**
- * Add a little more separation to the navigation once the user
- * starts scrolling.
- */
-const navigation = document.querySelector("nav");
-
-window.addEventListener(
-    "scroll",
-    () => {
-
-        if (!navigation) {
-            return;
-        }
-
-        if (window.scrollY > 20) {
-
-            navigation.style.boxShadow =
-                "0 10px 40px rgba(0,0,0,0.25)";
-
-        } else {
-
-            navigation.style.boxShadow =
-                "none";
-        }
-
-    },
-    {
-        passive: true
+    if (!header) {
+        return;
     }
-);
+
+    const updateHeader = () => header.classList.toggle("is-scrolled", window.scrollY > 18);
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    updateHeader();
+}
+
+/**
+ * Gives the hero product window a restrained pointer tilt. The effect is disabled
+ * for touch, narrow, and reduced-motion contexts so it never prevents reading.
+ *
+ * @returns {void}
+ */
+function initialiseHeroTilt() {
+    const stage = document.querySelector("[data-tilt-stage]");
+
+    if (!stage || reducedMotionQuery.matches || !window.matchMedia("(hover: hover) and (min-width: 881px)").matches) {
+        return;
+    }
+
+    stage.addEventListener("pointermove", (event) => {
+        const rectangle = stage.getBoundingClientRect();
+        const x = ((event.clientX - rectangle.left) / rectangle.width) - 0.5;
+        const y = ((event.clientY - rectangle.top) / rectangle.height) - 0.5;
+        stage.style.transform = `perspective(1600px) rotateX(${y * -1.4}deg) rotateY(${x * 1.7}deg)`;
+    });
+
+    stage.addEventListener("pointerleave", () => {
+        stage.style.transform = "perspective(1600px) rotateX(0deg) rotateY(0deg)";
+    });
+}
+
+/**
+ * Attempts to start muted demonstration clips. A rejected promise is expected in
+ * restrictive browser contexts; their poster image remains a complete fallback.
+ *
+ * @returns {void}
+ */
+function initialiseMedia() {
+    document.querySelectorAll("video[autoplay]").forEach((video) => {
+        const playback = video.play();
+        if (playback && typeof playback.catch === "function") {
+            playback.catch(() => {});
+        }
+    });
+}
+
+initialiseScrollReveals();
+initialiseNavigation();
+initialiseHeroTilt();
+initialiseMedia();

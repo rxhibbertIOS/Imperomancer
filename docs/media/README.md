@@ -2,6 +2,8 @@
 
 This directory defines reproducible inputs for documentation imagery and video. It keeps screenshots and clips consistent with the current application rather than relying on manually captured browser windows.
 
+New to the project? Start with the [no-assumptions feature development guide](../development-workflow.md). It explains installation, tests, DM/Player visibility, capture commands, review, and recovery steps before this reference guide goes into pipeline detail.
+
 ## Source resources
 
 [`resources/`](resources/) contains named, deterministic fixtures used by the capture suite. Do not replace a resource silently: a renamed or materially changed fixture changes the visual contract of every image that uses it.
@@ -51,6 +53,63 @@ Regenerate only the motion demonstrations while refining timing or pacing:
 ```sh
 npm run docs:media:motion
 ```
+
+Generate the longer paired DM/Player workflows separately. Each pair is recorded
+in one synchronized browser session at the same 1280×720 resolution, so the two
+WebM files can be placed side by side and started together in documentation or a
+marketing page:
+
+```sh
+npm run docs:media:e2e
+```
+
+During capture refinement, regenerate just one paired story by setting
+`DOCS_MEDIA_WORKFLOWS` before the flow command. Valid values are `scenes`,
+`dice`, `fog`, `grid`, `whiteboard`, `initiative`, `pointer`, `status`, and
+`shapes`:
+
+```sh
+DOCS_MEDIA_WORKFLOWS=shapes npm run docs:media:e2e:flow
+```
+
+The output pair follows the stable pattern `dm-e2e-<feature>.webm` and
+`player-e2e-<feature>.webm`. Keep both files together when embedding them: they
+are intentionally recorded from the same browser context and have matching
+start/end pacing for synchronized side-by-side playback.
+
+### Chunked workflow playlists
+
+Long workflows may be divided into matching numbered chapters, such as
+`dm-e2e-scenes-01-prepare.webm` and `player-e2e-scenes-01-prepare.webm`.
+Keep chapter counts and order identical across both channels. The website's
+[`media-playlist.js`](../../public/js/core/media-playlist.js) holds the paired
+manifest and advances both videos together when either chapter ends. This keeps
+individual captures short without exposing a visible seam to the reader.
+
+Generate all of the numbered paired chapters with:
+
+```sh
+npm run docs:media:playlists
+```
+
+The numbered capture suite currently covers scenes, dice, fog, grid,
+whiteboard, initiative, pointer, status announcements, and shape tools. To
+refresh one feature while developing its recipe, select its stable recipe ID:
+
+```sh
+DOCS_MEDIA_STEP_FEATURES=dice npm run docs:media:feature-steps
+```
+
+`npm run docs:media:steps` is intentionally narrower: it refreshes the
+four-chapter Scenes workflow only. Use it when you have edited a Scenes recipe
+and do not want to regenerate the other feature videos.
+
+Each feature has matched `dm-e2e-<feature>-<step>-<description>.webm` and
+`player-e2e-<feature>-<step>-<description>.webm` files. Keep both outputs and
+their numeric order. `media-playlist.js` moves the two channels through each
+pair and returns to chapter one after the final chapter, so the marketing
+players repeat indefinitely as a synchronized story rather than looping only a
+single clip.
 
 ## Use assets in Markdown
 
@@ -120,6 +179,7 @@ The capture recipes create both reference states and motion demonstrations. WebP
 | Shape tools | DM palette/layer controls, Player tactical geometry | — |
 | Status | announcement state | table announcement appearance |
 | Chronicle | expanded view, level filter, feature search | — |
+| End-to-end workflows | paired DM and Player recordings | scenes, dice, fog, grid, whiteboard, initiative, pointer, status, and shapes |
 
 The exact, committed filenames and embeddable examples are in the [media gallery](../media-gallery.md). Each row is backed by a focused recipe in [`e2e/docs-media/captures/`](../../e2e/docs-media/captures/), with common setup isolated in [`capture-utils.js`](../../e2e/docs-media/capture-utils.js).
 

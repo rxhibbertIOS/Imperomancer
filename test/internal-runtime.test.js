@@ -78,6 +78,39 @@ test('player transport: rejects stale state, acknowledges view packets, and fall
     assert.equal(player.showResultModal, true);
 });
 
+test('player scene fade: holds the old composition until the blackout before applying new scene layers', () => {
+    const { context, player } = playerContext();
+    player.currentImage = 'old-scene';
+    player.gridVisible = false;
+    player.fogEnabled = false;
+
+    player._onSync({
+        revision: 3,
+        scenePublished: true,
+        transition: 'fade',
+        currentImage: 'new-scene',
+        mediaType: 'image',
+        view: { cx: 40, cy: 50, sceneW: 600 },
+        gridVisible: true,
+        fogEnabled: true,
+        fogStrokes: [{ mode: 'reveal', shape: 'round', size: 2, x: 40, y: 50 }],
+        whiteboardActive: false,
+        whiteboardStrokes: [],
+        combatants: [],
+        edges: {},
+    });
+
+    assert.equal(player.sceneTransitionPhase, 'black');
+    assert.equal(player.currentImage, 'old-scene');
+    assert.equal(player.gridVisible, false);
+    assert.equal(player.fogEnabled, false);
+
+    context.__runScheduled();
+    assert.equal(player.currentImage, 'new-scene');
+    assert.equal(player.gridVisible, true);
+    assert.equal(player.fogEnabled, true);
+});
+
 test('DM helpers: safely toggle cards/dialogs, fullscreen, lock, and player lifecycle state', () => {
     const channel = createChannel();
     let requested = 0;
@@ -108,7 +141,7 @@ test('DM helpers: safely toggle cards/dialogs, fullscreen, lock, and player life
     assert.equal(dm.isConnecting, false);
 });
 
-test('landing runtime: initializes safely when optional landing-page elements are absent', () => {
+test('landing runtime: initializes safely without optional elements or unnecessary observers', () => {
     let observers = 0;
     const context = loadBrowserScript('public/js/core/landing.js', {
         IntersectionObserver: class IntersectionObserver { constructor() { observers += 1; } observe() {} unobserve() {} },
@@ -117,6 +150,6 @@ test('landing runtime: initializes safely when optional landing-page elements ar
         addEventListener() {},
         scrollY: 0,
     });
-    assert.equal(observers, 1);
+    assert.equal(observers, 0);
     assert.equal(typeof context.__runScheduled, 'function');
 });

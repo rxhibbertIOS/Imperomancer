@@ -5,3 +5,20 @@
     overflow: hidden;
     position: relative;
 }
+
+/* Scene fades use a dedicated blackout layer instead of fading the incoming
+   image. This keeps the outgoing composition visible until black and lets the
+   next scene's media, grid, fog, and other layers appear together. */
+.scene-transition-curtain {
+    position: absolute;
+    z-index: 200;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: #000;
+    transition: opacity 420ms ease-in-out;
+}
+
+.scene-transition-curtain.active {
+    opacity: 1;
+}

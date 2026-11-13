@@ -20,7 +20,7 @@ Video scenes play on the table display when published. They are presented as bac
 
 ## Publish safely
 
-Choose **Cut** for an immediate change or **Fade** for a gentle transition, then select **Publish to Table**. The selected scene becomes the player-visible scene. The status line identifies what is currently on the table.
+Choose **Cut** for an immediate change or **Fade** for a gentle transition, then select **Publish to Table**. A fade first takes the current Player composition to black, swaps the scene while it is concealed, then reveals the new scene with its grid, fog, and scene-specific effects already in place. The selected scene becomes the player-visible scene. The status line identifies what is currently on the table.
 
 Edits to the scene already on the table are marked as a **Draft** until you publish again. This lets you alter a map, grid, fog, or effect privately before revealing the change. **Clear Scene** removes the current media from the selected prepared scene; it is useful when you want to keep a scene slot but start its visual setup again.
 
