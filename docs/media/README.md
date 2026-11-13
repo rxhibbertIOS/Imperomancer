@@ -46,6 +46,12 @@ npm run docs:media
 
 The command starts a local Vite server, runs only the tagged documentation-media tests, and overwrites the named files above. Review each updated asset before committing it: generated media is product documentation, not a disposable test artifact.
 
+Regenerate only the motion demonstrations while refining timing or pacing:
+
+```sh
+npm run docs:media:motion
+```
+
 ## Use assets in Markdown
 
 Reference a screenshot with normal Markdown:
@@ -82,7 +88,7 @@ docs/media/extending.md           detailed recipe authoring guide
 
 [`e2e/docs-media.spec.js`](../../e2e/docs-media.spec.js) never contains feature-specific behavior. It validates the registry, creates a serial Playwright test for each registered recipe, and stays disabled unless `CAPTURE_DOCS_MEDIA=true`. The `docs:media` npm script supplies that variable; ordinary `npm run test:e2e` runs safely without overwriting committed documentation assets.
 
-Each recipe owns its complete list of output filenames. The registry rejects duplicate IDs, duplicate filenames, malformed IDs, and any output name that is not lowercase kebab-case WebP/WebM before Playwright opens a browser. Stable output names are part of the documentation API: Markdown, a future website, and publishing tooling can safely link to them.
+Each recipe owns its complete list of output filenames. The registry rejects duplicate IDs, duplicate filenames, malformed IDs, and any output name that is not lowercase kebab-case and prefixed `dm-` or `player-` before Playwright opens a browser. Stable output names are part of the documentation API: Markdown, a future website, and publishing tooling can safely link to them.
 
 ## Adding a feature capture
 
