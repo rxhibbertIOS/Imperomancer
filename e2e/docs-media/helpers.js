@@ -11,19 +11,50 @@ export const resourcesDirectory = path.join(projectRoot, 'docs', 'media', 'resou
 /** Directory containing the committed WebP and WebM documentation assets. */
 export const outputDirectory = path.join(projectRoot, 'docs', 'assets', 'media');
 
+/** MIME types accepted for source images in the documentation fixture directory. */
+const imageFixtureMimeTypes = Object.freeze({
+    '.avif': 'image/avif',
+    '.gif': 'image/gif',
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp',
+});
+
 /**
- * Reads an SVG fixture and encodes it as a browser-safe data URL.
+ * Returns the MIME type associated with a supported documentation image filename.
  *
- * @param {string} filename - Basename of an SVG in `docs/media/resources/`.
- * @returns {Promise<string>} A `data:image/svg+xml` URL.
- * @throws {Error} If `filename` is not a simple SVG basename or cannot be read.
+ * @param {string} filename - Image filename whose extension should be resolved.
+ * @returns {string|undefined} Supported image MIME type, if any.
  */
-export async function svgFixtureDataUrl(filename) {
-    if (path.basename(filename) !== filename || !filename.endsWith('.svg')) {
-        throw new Error(`Documentation fixture must be an SVG basename: ${filename}`);
+export function imageFixtureMimeType(filename) {
+    return imageFixtureMimeTypes[path.extname(filename).toLowerCase()];
+}
+
+/**
+ * Reads a publishable image fixture and encodes it as a browser-safe data URL.
+ * This accepts raster images as well as SVG, so contributors need not convert source artwork.
+ *
+ * @param {string} filename - Simple image basename in `docs/media/resources/`.
+ * @returns {Promise<string>} A MIME-correct image data URL.
+ * @throws {Error} If `filename` is not a supported image basename or cannot be read.
+ */
+export async function imageFixtureDataUrl(filename) {
+    const mimeType = imageFixtureMimeType(filename);
+    if (path.basename(filename) !== filename || !mimeType) {
+        throw new Error(`Documentation fixture must be a supported image basename: ${filename}`);
     }
-    const source = await fs.readFile(path.join(resourcesDirectory, filename));
-    return `data:image/svg+xml;base64,${source.toString('base64')}`;
+    let source;
+    try {
+        source = await fs.readFile(path.join(resourcesDirectory, filename));
+    } catch (error) {
+        if (error?.code === 'ENOENT') {
+            throw new Error(`Documentation image fixture is missing: docs/media/resources/${filename}`);
+        }
+        throw error;
+    }
+    return `data:${mimeType};base64,${source.toString('base64')}`;
 }
 
 /**

@@ -1,19 +1,106 @@
+/* The shared board intentionally replaces the scene: a table group can read and draw from every edge. */
 .whiteboard-panel {
     position: absolute;
-    top: 0;
-    left: 4%;
-    right: 4%;
-    height: min(68%, 680px);
-    z-index: 20;
-    padding: 12px;
-    background: #e7e9ed;
-    border: 1px solid rgba(15, 23, 42, .35);
-    border-top: 0;
-    border-radius: 0 0 14px 14px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, .38);
-    transform: translateY(calc(-100% - 8px));
-    transition: transform 340ms cubic-bezier(.22, .9, .26, 1);
+    inset: 0;
+    z-index: 110;
+    overflow: hidden;
+    background: #fff;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
     pointer-events: none;
 }
-.whiteboard-panel.active { transform: translateY(0); pointer-events: auto; }
-.whiteboard-canvas { display: block; width: 100%; height: 100%; background: #fff; border: 1px solid #cbd1db; border-radius: 6px; touch-action: none; }
+
+.whiteboard-panel.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 180ms ease;
+    pointer-events: auto;
+}
+
+.whiteboard-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.whiteboard-panel:not(.active) .whiteboard-canvas { cursor: default; }
+
+.whiteboard-cursor {
+    position: absolute;
+    z-index: 1;
+    box-sizing: border-box;
+    border: 1px solid var(--whiteboard-cursor-colour, #1e293b);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--whiteboard-cursor-colour, #1e293b) 16%, transparent);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.whiteboard-cursor.is-highlighter { background: color-mix(in srgb, var(--whiteboard-cursor-colour, #eab308) 35%, transparent); }
+.whiteboard-cursor.is-eraser { border: 1px dashed #475569; background: rgba(255, 255, 255, .8); }
+
+.whiteboard-tools { display: grid; gap: 8px; }
+
+.whiteboard-tool-grid,
+.whiteboard-colour-swatches,
+.whiteboard-actions {
+    display: grid;
+    gap: 6px;
+}
+
+.whiteboard-tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.whiteboard-colour-swatches { grid-template-columns: repeat(6, 1fr); }
+.whiteboard-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.whiteboard-tool,
+.whiteboard-swatch {
+    min-height: 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.whiteboard-tool {
+    padding: 5px 7px;
+    background: var(--card-2);
+    color: var(--text-2);
+    font: inherit;
+    font-size: 11px;
+}
+
+.whiteboard-tool:hover { border-color: var(--gold-dim); color: var(--text); }
+.whiteboard-tool[aria-pressed="true"] { background: var(--gold-dim); border-color: var(--gold); color: #1a1204; font-weight: 700; }
+
+.whiteboard-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    min-height: 26px;
+    padding: 0;
+    outline: 2px solid transparent;
+    outline-offset: 1px;
+}
+
+.whiteboard-swatch[aria-pressed="true"] { outline-color: var(--gold); }
+.whiteboard-swatch:focus-visible,
+.whiteboard-tool:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.whiteboard-colour-input {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+.whiteboard-colour-input input[type="color"] {
+    width: 36px;
+    height: 28px;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card-2);
+    cursor: pointer;
+}

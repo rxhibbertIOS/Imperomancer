@@ -7,19 +7,42 @@
     </h3></header>
     <div id="whiteboard-card-body" class="card-body" x-show="openCard === 'whiteboard'" x-transition.opacity>
         <button type="button" class="btn" :class="whiteboardActive ? 'btn-primary' : 'btn-ghost'" :aria-pressed="whiteboardActive" @click="setWhiteboardActive(!whiteboardActive)" x-text="whiteboardActive ? 'Hide whiteboard' : 'Show whiteboard'"></button>
-        <div x-show="whiteboardActive">
-            <div class="field-label">Tool</div>
-            <div class="chips" role="group" aria-label="Whiteboard tool">
-                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='pencil'}" @click="whiteboardTool='pencil'">Pencil</button>
-                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='line'}" @click="whiteboardTool='line'">Line</button>
-                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='rectangle'}" @click="whiteboardTool='rectangle'">Rectangle</button>
-                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='ellipse'}" @click="whiteboardTool='ellipse'">Ellipse</button>
-                <button class="chip" type="button" :class="{'chip-active':whiteboardTool==='eraser'}" @click="whiteboardTool='eraser'">Eraser</button>
+        <div class="whiteboard-tools" x-show="whiteboardActive">
+            <div>
+                <div class="field-label">Draw tool</div>
+                <div class="whiteboard-tool-grid" role="group" aria-label="Whiteboard drawing tools">
+                    <button class="whiteboard-tool" type="button" :aria-pressed="whiteboardTool === 'pencil'" @click="setWhiteboardTool('pencil')">Pencil</button>
+                    <button class="whiteboard-tool" type="button" :aria-pressed="whiteboardTool === 'highlighter'" @click="setWhiteboardTool('highlighter')">Highlighter</button>
+                    <button class="whiteboard-tool" type="button" :aria-pressed="whiteboardTool === 'line'" @click="setWhiteboardTool('line')">Line</button>
+                    <button class="whiteboard-tool" type="button" :aria-pressed="whiteboardTool === 'arrow'" @click="setWhiteboardTool('arrow')">Arrow</button>
+                    <button class="whiteboard-tool" type="button" :aria-pressed="whiteboardTool === 'rectangle'" @click="setWhiteboardTool('rectangle')">Rectangle</button>
+                    <button class="whiteboard-tool" type="button" :aria-pressed="whiteboardTool === 'ellipse'" @click="setWhiteboardTool('ellipse')">Ellipse</button>
+                    <button class="whiteboard-tool" type="button" :aria-pressed="whiteboardTool === 'eraser'" @click="setWhiteboardTool('eraser')">Eraser</button>
+                </div>
             </div>
-            <label class="field-label" for="whiteboard-colour">Colour</label><input id="whiteboard-colour" type="color" x-model="whiteboardColor">
-            <label class="field-label grid-size-label" for="whiteboard-size"><span>Stroke size</span><span class="grid-size-readout" x-text="whiteboardSize + ' px'"></span></label>
-            <input id="whiteboard-size" type="range" min="2" max="24" step="1" class="grid-slider" x-model.number="whiteboardSize">
-            <button type="button" class="btn btn-ghost btn-sm" @click="clearWhiteboard()">Clear whiteboard</button>
+            <div>
+                <label class="field-label" for="whiteboard-colour">Line colour</label>
+                <div class="whiteboard-colour-input">
+                    <input id="whiteboard-colour" type="color" :value="whiteboardColor" @input="setWhiteboardColor($event.target.value)">
+                    <span class="grid-size-readout" x-text="whiteboardColor"></span>
+                </div>
+                <div class="whiteboard-colour-swatches" role="group" aria-label="Quick line colours">
+                    <button class="whiteboard-swatch" type="button" style="background:#1e293b" aria-label="Ink" :aria-pressed="whiteboardColor === '#1e293b'" @click="setWhiteboardColor('#1e293b')"></button>
+                    <button class="whiteboard-swatch" type="button" style="background:#ef4444" aria-label="Red" :aria-pressed="whiteboardColor === '#ef4444'" @click="setWhiteboardColor('#ef4444')"></button>
+                    <button class="whiteboard-swatch" type="button" style="background:#f59e0b" aria-label="Amber" :aria-pressed="whiteboardColor === '#f59e0b'" @click="setWhiteboardColor('#f59e0b')"></button>
+                    <button class="whiteboard-swatch" type="button" style="background:#eab308" aria-label="Yellow" :aria-pressed="whiteboardColor === '#eab308'" @click="setWhiteboardColor('#eab308')"></button>
+                    <button class="whiteboard-swatch" type="button" style="background:#22c55e" aria-label="Green" :aria-pressed="whiteboardColor === '#22c55e'" @click="setWhiteboardColor('#22c55e')"></button>
+                    <button class="whiteboard-swatch" type="button" style="background:#3b82f6" aria-label="Blue" :aria-pressed="whiteboardColor === '#3b82f6'" @click="setWhiteboardColor('#3b82f6')"></button>
+                </div>
+            </div>
+            <div>
+                <label class="field-label grid-size-label" for="whiteboard-size"><span>Stroke size</span><span class="grid-size-readout" x-text="whiteboardSize + ' px'"></span></label>
+                <input id="whiteboard-size" type="range" min="2" max="48" step="1" class="grid-slider" x-model.number="whiteboardSize">
+            </div>
+            <div class="whiteboard-actions">
+                <button type="button" class="btn btn-ghost btn-sm" :disabled="whiteboardStrokes.length === 0" @click="undoWhiteboard()">Undo last</button>
+                <button type="button" class="btn btn-ghost btn-sm" @click="clearWhiteboard()">Clear board</button>
+            </div>
         </div>
     </div>
 </section>

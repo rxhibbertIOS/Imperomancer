@@ -96,3 +96,43 @@ test('DM card controls keep pointer mode and normal map interaction mutually exc
     await expect(page.getByRole('button', { name: /enable pointer/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /pointer active/i })).toHaveCount(0);
 });
+
+test('whiteboard fills both stages and synchronizes a DM drawing to the Player', async ({ browser }) => {
+    const context = await browser.newContext();
+    const dm = await context.newPage();
+    const player = await context.newPage();
+    await dm.setViewportSize({ width: 1440, height: 900 });
+    await player.setViewportSize({ width: 1200, height: 900 });
+    await dm.goto('/?mode=dm');
+    await player.goto('/?mode=player');
+    await expect(dm.locator('#dmApp')).toBeVisible();
+    await expect(player.locator('#playerApp')).toBeVisible();
+
+    await dm.getByRole('button', { name: /whiteboard/i }).first().click();
+    await dm.getByRole('button', { name: /^show whiteboard$/i }).click();
+    await expect(dm.locator('#dmApp .whiteboard-panel.active')).toBeVisible();
+    await expect.poll(() => player.evaluate(() => Alpine.$data(document.querySelector('#playerApp')).whiteboardActive)).toBe(true);
+
+    const dmGeometry = await dm.locator('#dmApp .whiteboard-panel.active').evaluate(panel => {
+        const board = panel.getBoundingClientRect();
+        const stage = panel.parentElement.getBoundingClientRect();
+        return { board: board.toJSON(), stage: stage.toJSON() };
+    });
+    expect(dmGeometry.board.left).toBeCloseTo(dmGeometry.stage.left, 0);
+    expect(dmGeometry.board.top).toBeCloseTo(dmGeometry.stage.top, 0);
+    expect(dmGeometry.board.width).toBeCloseTo(dmGeometry.stage.width, 0);
+    expect(dmGeometry.board.height).toBeCloseTo(dmGeometry.stage.height, 0);
+
+    const canvas = dm.locator('#dmApp [data-whiteboard-canvas]');
+    const box = await canvas.boundingBox();
+    await canvas.hover({ position: { x: box.width * 0.25, y: box.height * 0.3 } });
+    await expect(dm.locator('#dmApp .whiteboard-cursor')).toBeVisible();
+    await expect(player.locator('#playerApp .whiteboard-cursor')).toHaveCount(0);
+    await dm.mouse.move(box.x + (box.width * 0.25), box.y + (box.height * 0.3));
+    await dm.mouse.down();
+    await dm.mouse.move(box.x + (box.width * 0.7), box.y + (box.height * 0.65));
+    await dm.mouse.up();
+    await expect.poll(() => player.evaluate(() => Alpine.$data(document.querySelector('#playerApp')).whiteboardStrokes.length)).toBe(1);
+    await expect(player.locator('#playerApp .whiteboard-panel.active')).toBeVisible();
+    await context.close();
+});

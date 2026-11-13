@@ -6,7 +6,7 @@ This guide is for contributors adding a visual explanation of a new Imperomancer
 
 Use a **WebP screenshot** when one stable state explains the feature: a configured control, a Player-visible result, a before/after comparison, or a layout behavior.
 
-Use a **WebM clip** when motion is the lesson: drawing fog, creating a whiteboard stroke, moving focus, advancing initiative, or a transient effect. Keep clips short—normally two to six seconds—and demonstrate a single action.
+Use a **WebM clip** when motion is the lesson: drawing fog, creating a whiteboard stroke, moving focus, advancing initiative, or a transient effect. Keep clips short—normally two to six seconds—and demonstrate a single action. Hold a stable initial state briefly before the action and a stable resulting state briefly afterwards, so an embedded player cannot clip the context or outcome.
 
 Capture the smallest useful surface. A Player-facing feature normally needs the Player stage. DM-only configuration belongs in the DM view. When a feature crosses both roles, use two assets unless their relationship itself is the lesson.
 
@@ -14,12 +14,15 @@ Capture the smallest useful surface. A Player-facing feature normally needs the 
 
 Place fixed inputs in `docs/media/resources/`.
 
-- Use a descriptive lowercase kebab-case filename, such as `initiative-demo.json` or `forest-battlefield.svg`.
-- Prefer SVG for maps/diagrams and small text fixtures for structured sample data.
+- Put image files directly in `docs/media/resources/`; do not place source images in `public/` or `docs/assets/media/`.
+- Use a descriptive lowercase kebab-case filename, such as `dm-publishing-scene.webp`, `fog-reveal-scene.jpg`, or `forest-battlefield.svg`.
+- PNG, JPEG, WebP, AVIF, GIF, and SVG are supported. Prefer SVG for diagrams when available, but use the original high-quality raster image when that is what you have.
 - Keep fixture dimensions and content intentional; a resource is part of the visual contract.
 - Never use campaign data, private notes, personal information, remote URLs, or unlicensed art.
 
 If the recipe needs no external resource, do not add a placeholder just for symmetry.
+
+If you replace an existing fixture, update every recipe that names it. For example, replacing `portrait-ruins.svg` with `dm-publishing-scene.webp` means changing `imageFixtureDataUrl('portrait-ruins.svg')` to `imageFixtureDataUrl('dm-publishing-scene.webp')` in the relevant recipe(s). The capture command reports a clear missing-fixture error when a recipe names a file that is not present.
 
 ## Step 2: create one recipe module
 
@@ -67,7 +70,7 @@ Always create a new context with an explicit viewport and `deviceScaleFactor: 1`
 
 | Helper | Use |
 | --- | --- |
-| `svgFixtureDataUrl(name)` | Reads an SVG from `docs/media/resources/` as a safe data URL. |
+| `imageFixtureDataUrl(name)` | Reads PNG, JPEG, WebP, AVIF, GIF, or SVG from `docs/media/resources/` as a MIME-correct data URL. |
 | `documentationAssetPath(name)` | Produces a validated output path for a declared `.webp` or `.webm` asset. |
 | `mountDmScene(page, source)` | Loads a scene into DM mode and applies its geometry. |
 | `mountPlayerScene(page, source)` | Loads a scene into Player mode and waits for image fit/rendering. |
@@ -89,7 +92,7 @@ export const documentationCaptures = Object.freeze([
 ]);
 ```
 
-The registry validates IDs and filenames. IDs must be unique lowercase kebab-case values. Every asset must be listed, use a unique lowercase kebab-case filename, and end in `.webp` or `.webm`. That list is the recipe’s write contract.
+The registry validates IDs and filenames. IDs must be unique lowercase kebab-case values. Every asset must be listed, use a unique lowercase kebab-case filename, and end in `.webp` or `.webm`. Prefix every filename with `dm-` or `player-` to make its viewpoint explicit; `dm-grid-calibration.webp` and `player-grid-application.webp` are the expected pattern. That list is the recipe’s write contract.
 
 ## Step 5: record a WebM when motion matters
 
@@ -104,9 +107,10 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 
-// Navigate, establish initial state, then perform one visible action.
-await page.waitForTimeout(400);
-await page.waitForTimeout(1_000);
+// Navigate and establish initial state.
+await page.waitForTimeout(700); // Keep a clear before-state in the finished clip.
+// Perform one visible action.
+await page.waitForTimeout(900); // Keep the resulting state long enough to read.
 
 const video = page.video();
 await page.close();

@@ -40,7 +40,18 @@
                     @pointerdown.stop="whiteboardPointerDown($event)"
                     @pointermove.stop="whiteboardPointerMove($event)"
                     @pointerup.stop="whiteboardPointerUp($event)"
-                    @pointercancel.stop="whiteboardPointerUp($event)"></canvas>
+                    @pointercancel.stop="whiteboardPointerUp($event)"
+                    @pointerleave.stop="hideWhiteboardCursor()"
+                    @mousedown.stop
+                    @mousemove.stop
+                    @mouseup.stop
+                    @click.stop
+                    @wheel.stop></canvas>
+                <div class="whiteboard-cursor"
+                    x-show="whiteboardCursor"
+                    :class="{ 'is-eraser': whiteboardTool === 'eraser', 'is-highlighter': whiteboardTool === 'highlighter' }"
+                    :style="whiteboardCursorStyle()"
+                    aria-hidden="true"></div>
             </div>
 
             <!-- Overlays -->

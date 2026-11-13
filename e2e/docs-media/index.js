@@ -1,5 +1,15 @@
 import { fogRevealCapture } from './captures/fog-reveal.js';
+import { fogCapture } from './captures/fog.js';
+import { gridCapture } from './captures/grid.js';
+import { initiativeCapture } from './captures/initiative.js';
+import { motionCapture } from './captures/motion.js';
+import { diceCapture } from './captures/dice.js';
+import { pointerCapture } from './captures/pointer.js';
 import { sceneOverviewCapture } from './captures/scene-overview.js';
+import { scenesCapture } from './captures/scenes.js';
+import { sessionToolsCapture } from './captures/session-tools.js';
+import { shapesCapture } from './captures/shapes.js';
+import { whiteboardCapture } from './captures/whiteboard.js';
 
 /**
  * One executable documentation-media recipe.
@@ -20,6 +30,16 @@ import { sceneOverviewCapture } from './captures/scene-overview.js';
 export const documentationCaptures = Object.freeze([
     sceneOverviewCapture,
     fogRevealCapture,
+    scenesCapture,
+    gridCapture,
+    fogCapture,
+    whiteboardCapture,
+    pointerCapture,
+    diceCapture,
+    initiativeCapture,
+    sessionToolsCapture,
+    shapesCapture,
+    motionCapture,
 ]);
 
 /**
@@ -41,8 +61,8 @@ export function validateDocumentationCaptures(captures) {
         }
         ids.add(capture.id);
         for (const asset of capture.assets) {
-            if (!/^[a-z0-9][a-z0-9-]*\.(webp|webm)$/u.test(asset) || assets.has(asset)) {
-                throw new Error(`Documentation capture assets must have unique lowercase WebP/WebM filenames: ${asset}`);
+            if (!/^(dm|player)-[a-z0-9][a-z0-9-]*\.(webp|webm)$/u.test(asset) || assets.has(asset)) {
+                throw new Error(`Documentation capture assets must have unique lowercase DM/Player-prefixed WebP/WebM filenames: ${asset}`);
             }
             assets.add(asset);
         }
