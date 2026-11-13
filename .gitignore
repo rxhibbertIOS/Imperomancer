@@ -44,6 +44,8 @@ desktop.ini
 
 # ===== Test coverage =====
 coverage/
+test-results/
+playwright-report/
 
 # ===== Optional: package manager lockfiles =====
 # Keep package-lock.json committed (recommended) — don't ignore it.

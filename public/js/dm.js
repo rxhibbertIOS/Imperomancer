@@ -94,8 +94,12 @@ function dmApp() {
                     this.onPublicResult(d);
                 }
                 if (d.type === 'displayInfo') {
-                    this.onDisplayInfo(d);
+                    // Update the renderable stage first. Scene fitting compares
+                    // the previous display geometry to preserve a true fit view;
+                    // overwriting physical screen metadata first would hide that
+                    // initial aspect-ratio change.
                     this.onPlayerStage(d);
+                    this.onDisplayInfo(d);
                 }
             };
 

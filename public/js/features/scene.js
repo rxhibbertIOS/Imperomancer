@@ -452,8 +452,12 @@ window.sceneFeature = function() {
             // Player is the table display itself — full viewport, no letterbox.
             if (window.MODE === 'player') return { W: OW, H: OH };
 
-            // DM: letterbox to the table's aspect ratio.
-            const ar = (this.tableScreenWidth || 16) / (this.tableScreenHeight || 9);
+            // DM: letterbox to the *renderable player stage*, not its physical
+            // screen. Browser chrome, fullscreen state, and display scaling can
+            // make those ratios differ; the stage is what the players see.
+            const displayW = this.playerStageW || this.tableScreenWidth || 16;
+            const displayH = this.playerStageH || this.tableScreenHeight || 9;
+            const ar = displayW / displayH;
             if (!isFinite(ar) || ar <= 0) return { W: OW, H: OH };
             if (OW / OH > ar) return { W: Math.round(OH * ar), H: OH };
             return { W: OW, H: Math.round(OW / ar) };
@@ -566,6 +570,37 @@ window.sceneFeature = function() {
             const sw = this.minSceneW();
             this.view = { cx: nw / 2, cy: nh / 2, sceneW: sw }; 
             this.clampView();
+        },
+
+        /**
+         * Re-fits an untouched scene when the connected player stage reports
+         * its real dimensions. Deliberately preserves any deliberate DM zoom
+         * or pan, while preventing portrait media from inheriting a fit based
+         * on the physical screen rather than the renderable player viewport.
+         *
+         * @param {number} previousStageW Previous synchronized player-stage width.
+         * @param {number} previousStageH Previous synchronized player-stage height.
+         * @returns {void}
+         */
+        onPlayerStageAspectChanged(previousStageW, previousStageH) {
+            const { nw, nh } = this.naturalSize();
+            if (!nw || !nh || !this.view?.sceneW) return;
+
+            const oldDisplayW = previousStageW || this.tableScreenWidth || 16;
+            const oldDisplayH = previousStageH || this.tableScreenHeight || 9;
+            const oldAspect = oldDisplayW / oldDisplayH;
+            if (!isFinite(oldAspect) || oldAspect <= 0) return;
+
+            const oldFitSceneW = nw / nh >= oldAspect ? nw : nh * oldAspect;
+            // Do not override an intentional zoom level or pan position.
+            if (Math.abs(this.view.sceneW - oldFitSceneW) > 0.5) return;
+
+            const newFitSceneW = this.minSceneW();
+            this.view = { cx: nw / 2, cy: nh / 2, sceneW: newFitSceneW };
+            this.clampView();
+            this.drawGrid?.();
+            this.drawFog?.();
+            this._throttledSync();
         },
 
         zoomBy(factor, cursor) {

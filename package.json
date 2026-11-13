@@ -7,9 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test test/**/*.test.js"
+    "test": "node --test test/**/*.test.js",
+    "test:watch": "node --test --watch test/**/*.test.js",
+    "test:e2e": "playwright test",
+    "docs:media": "CAPTURE_DOCS_MEDIA=true playwright test --grep @docs-media --reporter=list"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "vite": "^6.4.4",
     "vite-plugin-html-include": "^1.5.2"
   }

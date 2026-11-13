@@ -332,8 +332,11 @@ function gridFeature() {
         },
 
         onPlayerStage(info) {
+            const previousStageW = this.playerStageW;
+            const previousStageH = this.playerStageH;
             if (info.stageW) this.playerStageW = info.stageW;
             if (info.stageH) this.playerStageH = info.stageH;
+            this.onPlayerStageAspectChanged?.(previousStageW, previousStageH);
             this.reevalLock();
             if (window.syncState && window.MODE === 'dm') window.syncState(this.$data);
         },
