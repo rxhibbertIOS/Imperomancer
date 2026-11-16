@@ -43,6 +43,7 @@ test('fog: records only permitted strokes and synchronizes completed drawing', (
 test('fog: converts colors defensively and renders reveal strokes without crashing', () => {
     const { context } = setup('public/js/features/fog.js');
     const { calls, context: canvasContext } = createCanvasContext();
+    const mask = createCanvasContext();
     const feature = prepareFeature(context.fogFeature(), {
         fogEnabled: true, fogColor: '#abc', scenePxPerCell: 100,
         sceneToStage: (x, y) => ({ x, y }),
@@ -53,10 +54,24 @@ test('fog: converts colors defensively and renders reveal strokes without crashi
     feature.fogColor = '#334455';
     feature.fogStrokes = [{ mode: 'reveal', shape: 'round', size: 1, x: 30, y: 30 }];
     feature._fogCanvas = { isConnected: true, clientWidth: 100, clientHeight: 80, width: 0, height: 0, getContext: () => canvasContext };
+    feature._fogMaskCanvas = { width: 0, height: 0, getContext: () => mask.context };
     feature._drawFog();
     assert.ok(calls.some(call => call[0] === 'fillRect'));
-    assert.ok(calls.some(call => call[0] === 'arc'));
+    assert.ok(mask.calls.some(call => call[0] === 'arc'));
     assert.equal(canvasContext.globalCompositeOperation, 'source-over');
+    assert.ok(calls.some(call => call[0] === 'drawImage'));
+});
+
+test('fog: restores repaint strokes in the visibility mask rather than painting a flat field', () => {
+    const { context } = setup('public/js/features/fog.js');
+    const feature = prepareFeature(context.fogFeature());
+    const mask = createCanvasContext();
+
+    feature.fogMaskPaint(mask.context, { x: 50, y: 50 }, 20, 'round');
+
+    assert.equal(mask.calls.filter(call => call[0] === 'fill').length, 2);
+    assert.ok(mask.calls.some(call => call[0] === 'set' && call[1] === 'fillStyle' && call[2] === '#000'));
+    assert.equal(mask.context.globalCompositeOperation, 'source-over');
 });
 
 test('whiteboard: normalizes points, commits strokes, and does not permit player drawing', () => {

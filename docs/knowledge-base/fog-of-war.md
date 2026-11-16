@@ -14,7 +14,7 @@ Brush size follows the current grid cell size, so a two-cell brush remains meani
 
 ## Restore and reset
 
-Use **Repaint** to cover areas again. This is useful after the party leaves a location or if a reveal was made too generously. **Remove all** removes every fog stroke and leaves the whole map visible. **Reapply fog** discards the current reveal/paint history and returns the scene to fully covered fog.
+Use **Repaint** to cover areas again. This is useful after the party leaves a location or if a reveal was made too generously. Repainted fog keeps the same translucent appearance in the DM view as the surrounding fog, while it remains fully opaque on the Player display. **Remove all** removes every fog stroke and leaves the whole map visible. **Reapply fog** discards the current reveal/paint history and returns the scene to fully covered fog.
 
 Choose a fog color that works with the map and room lighting. The effect is synchronized as you work; players see the fog state, not the editing controls or brush cursor.
 

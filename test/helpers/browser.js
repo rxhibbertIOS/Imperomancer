@@ -101,6 +101,7 @@ export function createCanvasContext() {
         moveTo: (...args) => calls.push(['moveTo', ...args]), lineTo: (...args) => calls.push(['lineTo', ...args]),
         arc: (...args) => calls.push(['arc', ...args]), rect: (...args) => calls.push(['rect', ...args]),
         fill: () => calls.push(['fill']), stroke: () => calls.push(['stroke']), clip: () => calls.push(['clip']),
+        drawImage: (...args) => calls.push(['drawImage', ...args]),
         fillRect: (...args) => calls.push(['fillRect', ...args]), strokeRect: (...args) => calls.push(['strokeRect', ...args]),
         clearRect: (...args) => calls.push(['clearRect', ...args]), setTransform: (...args) => calls.push(['setTransform', ...args]),
         setLineDash: (...args) => calls.push(['setLineDash', ...args]),

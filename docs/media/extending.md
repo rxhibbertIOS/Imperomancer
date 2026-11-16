@@ -64,6 +64,55 @@ Use semantic Playwright locators (`getByRole`, visible text, or durable `data-*`
 
 Always create a new context with an explicit viewport and `deviceScaleFactor: 1`. Close every page/context, even when a recipe has only one image.
 
+### Use a scenario session for multi-step DM/Player stories
+
+Do not repeat browser startup, scene publication, grid configuration, and fog
+setup in every long workflow. Use
+[`scenario-session.js`](../../e2e/docs-media/scenario-session.js) for a
+repeatable two-screen session instead. It opens a real DM and Player pair in
+one browser context, so the product's normal synchronization path is still
+used.
+
+```js
+import { createScenarioSession } from '../scenario-session.js';
+
+const session = await createScenarioSession(browser).instantiate();
+await session.prepareScene('Dwarven Forge', 'Dwarven_Forge.png');
+await session.publishScene('Dwarven Forge', 'cut');
+await session.enableGrid({ type: 'hex-pointy', cellsAcross: 100, pxPerCell: 18 });
+await session.lockGrid({ tablePpi: 40 });
+await session.applyFog({
+    strokes: [{ mode: 'reveal', shape: 'round', size: 5, x: 260, y: 380 }],
+});
+
+// Record a specific feature action after the shared prerequisites are ready.
+await session.saveRecording('dm-e2e-example.webm', 'player-e2e-example.webm');
+```
+
+The session exposes `dm` and `player` Playwright pages for the small number of
+feature-specific interactions that need them. Prefer its semantic methods when
+one exists:
+
+| Scenario area | Available methods |
+| --- | --- |
+| Lifecycle | `instantiate`, `hold`, `saveRecording`, `close` |
+| Scenes | `prepareScene`, `selectScene`, `publishScene`, `setSceneViewport`, `clearScene` |
+| Grid | `enableGrid`, `setGridSize`, `setGridType`, `setGridUnits`, `calibrateGrid`, `lockGrid`, `unlockGrid` |
+| Fog | `applyFog`, `revealFog`, `reapplyFog`, `setFogEditing`, `clearFog` |
+| Whiteboard | `openWhiteboard`, `hideWhiteboard`, `configureWhiteboard`, `drawWhiteboardStroke`, `drawWhiteboardShape`, `undoWhiteboard`, `clearWhiteboard` |
+| Pointer | `setPointerColor`, `placePointer`, `clearPointers` |
+| Dice | `configureDice`, `performPrivateRoll`, `performPublicRoll`, `closeDiceResults`, `openRollHistory` |
+| Initiative | `populateInitiative`, `startInitiative`, `advanceTurn`, `setCombatantDefeated`, `collapseInitiative`, `exitInitiative` |
+| Status | `sendStatus`, `sendQuickStatus`, `clearStatus` |
+| Effects | `startMeasurement`, `placeTemporaryShape`, `placePersistentShape`, `deleteEffect`, `clearEffects` |
+| Escape hatch | `showCard`, `patchDmState` |
+
+`patchDmState` is the deliberate escape hatch for deterministic,
+user-reachable setup that has no semantic helper yet. Add a new helper only
+when two or more workflows would benefit from the same named action. This
+keeps the factory useful without turning it into a second copy of every
+feature's implementation.
+
 ## Step 3: use or add shared helpers
 
 [`e2e/docs-media/helpers.js`](../../e2e/docs-media/helpers.js) provides the common, deliberately safe pieces:

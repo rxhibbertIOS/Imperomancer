@@ -13,6 +13,7 @@ function fogFeature() {
         fogCursor: null,
         _fogDrawing: false,
         _fogCanvas: null,
+        _fogMaskCanvas: null,
         _fogRaf: null,
         _fogResizeObserver: null,
 
@@ -132,17 +133,25 @@ function fogFeature() {
             return `rgba(${shade(r)}, ${shade(g)}, ${shade(b)}, ${alpha})`;
         },
 
-        fogPaint(context, center, radius, shape, playerView) {
-            const alpha = playerView ? 1 : 0.68;
-            const { r, g, b } = this.fogRgb();
-            const paint = this.fogRgba(1, alpha, r, g, b);
+        /**
+         * Restores an opaque region of the fog visibility mask. The visible fog is
+         * composited from its original field through this mask afterwards, so a
+         * repaint has precisely the same colour and opacity as untouched fog.
+         *
+         * @param {CanvasRenderingContext2D} context Target mask canvas context.
+         * @param {{x: number, y: number}} center Brush centre in stage coordinates.
+         * @param {number} radius Brush radius in stage pixels.
+         * @param {'round'|'square'} shape Brush shape.
+         * @returns {void}
+         */
+        fogMaskPaint(context, center, radius, shape) {
             const feather = Math.max(8, Math.min(28, radius * 0.22));
             context.globalCompositeOperation = 'source-over';
 
             // A blurred first pass blends repainted fog back into its surroundings.
             context.save();
             context.filter = `blur(${feather}px)`;
-            context.fillStyle = paint;
+            context.fillStyle = '#000';
             if (shape === 'square') context.fillRect(center.x - radius, center.y - radius, radius * 2, radius * 2);
             else {
                 context.beginPath();
@@ -151,7 +160,7 @@ function fogFeature() {
             }
             context.restore();
 
-            context.fillStyle = paint;
+            context.fillStyle = '#000';
             if (shape === 'square') context.fillRect(center.x - radius * 0.78, center.y - radius * 0.78, radius * 1.56, radius * 1.56);
             else {
                 context.beginPath();
@@ -202,6 +211,23 @@ function fogFeature() {
             context.restore();
         },
 
+        /**
+         * Returns a reusable mask canvas used to separate fog visibility from its
+         * visual field. Keeping these layers separate makes repaint deterministic.
+         *
+         * @param {number} width Backing-store width in device pixels.
+         * @param {number} height Backing-store height in device pixels.
+         * @returns {HTMLCanvasElement|null} Canvas or null when the browser cannot create one.
+         */
+        getFogMaskCanvas(width, height) {
+            if (!this._fogMaskCanvas) this._fogMaskCanvas = document.createElement?.('canvas') || null;
+            const mask = this._fogMaskCanvas;
+            if (!mask?.getContext) return null;
+            if (mask.width !== width) mask.width = width;
+            if (mask.height !== height) mask.height = height;
+            return mask;
+        },
+
         _drawFog() {
             const canvas = this.getFogCanvas();
             if (!canvas) return;
@@ -222,18 +248,29 @@ function fogFeature() {
             context.clearRect(0, 0, width, height);
             if (!this.fogEnabled) return;
 
-            const playerView = window.MODE === 'player';
-            context.fillStyle = this.fogField(context, width, height, playerView);
-            context.fillRect(0, 0, width, height);
+            const mask = this.getFogMaskCanvas(pixelWidth, pixelHeight);
+            const maskContext = mask?.getContext('2d');
+            if (!maskContext) return;
+            maskContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+            maskContext.clearRect(0, 0, width, height);
+            maskContext.globalCompositeOperation = 'source-over';
+            maskContext.fillStyle = '#000';
+            maskContext.fillRect(0, 0, width, height);
 
             for (const stroke of this.fogStrokes) {
                 const center = this.sceneToStage?.(stroke.x, stroke.y);
                 const edge = this.sceneToStage?.(stroke.x + ((Number(stroke.size) || 1) * (Number(this.scenePxPerCell) || 100)), stroke.y);
                 if (!center || !edge) continue;
                 const radius = Math.max(1, Math.abs(edge.x - center.x));
-                if (stroke.mode === 'reveal') this.fogReveal(context, center, radius, stroke.shape);
-                else this.fogPaint(context, center, radius, stroke.shape, playerView);
+                if (stroke.mode === 'reveal') this.fogReveal(maskContext, center, radius, stroke.shape);
+                else this.fogMaskPaint(maskContext, center, radius, stroke.shape);
             }
+
+            const playerView = window.MODE === 'player';
+            context.fillStyle = this.fogField(context, width, height, playerView);
+            context.fillRect(0, 0, width, height);
+            context.globalCompositeOperation = 'destination-in';
+            context.drawImage(mask, 0, 0, pixelWidth, pixelHeight, 0, 0, width, height);
             context.globalCompositeOperation = 'source-over';
             this.drawFogCursor(context);
         },

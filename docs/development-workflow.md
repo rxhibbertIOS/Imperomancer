@@ -247,6 +247,13 @@ same number and order of numbered clips.
 Use [Extending the documentation media pipeline](media/extending.md) for
 complete recipe templates and helper descriptions.
 
+For a multi-step DM/Player recording, start with
+`createScenarioSession(browser).instantiate()` from
+[`e2e/docs-media/scenario-session.js`](../e2e/docs-media/scenario-session.js).
+It provides reusable `prepareScene`, `publishScene`, grid, fog, hold, and
+recording steps, so each recipe only contains the behaviour unique to its
+feature.
+
 ### Choose the capture command
 
 | You changed | Command |

@@ -55,6 +55,43 @@ test('player accepts a published state and clamps stale viewport packets by revi
     await expect.poll(() => page.evaluate(() => Alpine.$data(document.querySelector('#playerApp')).currentImage)).toBe(portraitMap);
 });
 
+test('DM repaint restores the original fog field while Player fog remains opaque', async ({ browser }) => {
+    const context = await browser.newContext();
+    const dm = await context.newPage();
+    const player = await context.newPage();
+    await dm.goto('/?mode=dm');
+    await player.goto('/?mode=player');
+    await expect(dm.locator('#dmApp')).toBeVisible();
+    await expect(player.locator('#playerApp')).toBeVisible();
+    const sampleFog = page => page.evaluate(() => {
+        const state = Alpine.$data(document.querySelector(window.MODE === 'dm' ? '#dmApp' : '#playerApp'));
+        state.fogEnabled = true;
+        state.fogColor = '#3e434e';
+        state.scenePxPerCell = 100;
+        state.sceneToStage = (x, y) => ({ x, y });
+        const canvas = state.getFogCanvas();
+        state.fogStrokes = [];
+        state._drawFog();
+        const untouched = [...canvas.getContext('2d').getImageData(150, 150, 1, 1).data];
+        state.fogStrokes = [
+            { mode: 'reveal', shape: 'round', size: 1, x: 150, y: 150 },
+            { mode: 'paint', shape: 'round', size: 1, x: 150, y: 150 },
+        ];
+        state._drawFog();
+        const repainted = [...canvas.getContext('2d').getImageData(150, 150, 1, 1).data];
+        return { untouched, repainted };
+    });
+
+    const dmFog = await sampleFog(dm);
+    const playerFog = await sampleFog(player);
+    expect(dmFog.repainted).toEqual(dmFog.untouched);
+    expect(playerFog.repainted).toEqual(playerFog.untouched);
+    expect(dmFog.untouched[3]).toBeGreaterThanOrEqual(170);
+    expect(dmFog.untouched[3]).toBeLessThanOrEqual(176);
+    expect(playerFog.untouched[3]).toBe(255);
+    await context.close();
+});
+
 test('player fades the old composition to black before applying a published scene and its overlays', async ({ page }) => {
     const nextScene = `data:image/svg+xml,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
